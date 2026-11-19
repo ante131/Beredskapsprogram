@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA-Beredskap – Beredskapsplaner för kommunala anläggningar</title>
+<style>
+:root{
+  --bg:#f4f6f8; --panel:#fff; --ink:#1c2733; --muted:#5c6b7a;
+  --brand:#0b6e99; --brand-dark:#085473; --line:#d7dee5;
+  --danger:#b3261e; --warn:#8a5a00; --ok:#1b6e3c; --chipBg:#e8eef3;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--brand);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+header h1{font-size:1.15em;margin:0;font-weight:600}
+header .sub{font-size:.8em;opacity:.85}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:60px;z-index:19}
+nav button{border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.95em}
+nav button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+main{max-width:1050px;margin:0 auto;padding:20px}
+h2{font-size:1.25em;margin:0 0 4px}
+.hint{color:var(--muted);font-size:.85em;margin:0 0 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+label{display:block;font-size:.82em;font-weight:600;margin:10px 0 4px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+button.primary{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;font:inherit;font-weight:600}
+button.primary:hover{background:var(--brand-dark)}
+button.ghost{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button.danger{background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;font-size:.85em}
+button.link{background:none;border:none;color:var(--brand);cursor:pointer;text-decoration:underline;padding:0;font:inherit;font-size:.9em}
+table{width:100%;border-collapse:collapse;font-size:.92em}
+th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--chipBg);font-size:.8em;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+.chip{display:inline-block;background:var(--chipBg);border-radius:999px;padding:2px 10px;font-size:.78em;font-weight:600}
+.chip.pump{background:#dff0f9;color:#0b6e99}
+.chip.ledning{background:#e5f0e2;color:#2d5e1e}
+.chip.verk{background:#f3e8ee;color:#7a2b47}
+.chip.brunn{background:#f1ecdf;color:#6b5416}
+.chip.ovrigt{background:#e6e7e9;color:#4a4e54}
+.prio{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.prio.hog{background:#b3261e}.prio.medel{background:#c98a00}.prio.lag{background:#2e7d32}.prio.ingen{background:#9aa4ad}
+.row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stat{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:1.5em;color:var(--brand)}
+.stat span{font-size:.8em;color:var(--muted)}
+.empty{color:var(--muted);font-style:italic;padding:14px;border:1px dashed var(--line);border-radius:8px}
+details summary{cursor:pointer;font-weight:600;padding:6px 0}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);font-size:.8em}
+@media print{
+  header,nav,.no-print{display:none!important}
+  body{background:#fff}
+  .card{border:none;page-break-inside:avoid}
+  main{max-width:none;padding:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>VA‑Beredskap</h1>
+    <div class="sub">Beredskapsplaner för kommunala VA‑anläggningar · offline · data sparas lokalt i webbläsaren</div>
+  </div>
+  <div class="row-flex no-print">
+    <button class="ghost" style="background:#fff" onclick="exportData()">Exportera (JSON)</button>
+    <label class="ghost" style="background:#fff;cursor:pointer;padding:8px 14px;border-radius:8px;border:1px solid var(--line)">Importera<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+    <button class="ghost" style="background:#fff;color:#b3261e;border-color:#b3261e" onclick="confirmReset()">Rensa allt</button>
+  </div>
+</header>
+
+<nav>
+  <button data-view="start" class="active" onclick="show('start')">Översikt</button>
+  <button data-view="anlaggning" onclick="show('anlaggning')">Anläggningar</button>
+  <button data-view="plan" onclick="show('plan')">Beredskapsplaner</button>
+  <button data-view="kontakt" onclick="show('kontakt')">Kontakter</button>
+  <button data-view="checklista" onclick="show('checklista')">Beredskapschecklista</button>
+  <button data-view="ovning" onclick="show('ovning')">Övningar &amp; händelser</button>
+  <button data-view="om" onclick="show('om')">Om &amp; hjälp</button>
+</nav>
+
+<main>
+<section id="view-start"></section>
+<section id="view-anlaggning" hidden></section>
+<section id="view-plan" hidden></section>
+<section id="view-kontakt" hidden></section>
+<section id="view-checklista" hidden></section>
+<section id="view-ovning" hidden></section>
+<section id="view-om" hidden></section>
+</main>
+
+<footer>
+All data lagras endast lokalt i denna webbläsare (localStorage). Ta regelbundna säkerhetskopior med knappen ”Exportera”. Vid delning: exportera filen och öppna den på mottagarens dator med ”Importera”.
+</footer>
+
+<script>
+"use strict";
+const KEY = "va_beredskap_v1";
+const TYPER = {pump:"Pumpstation", ledning:"VA‑ledning", verk:"Reningsverk / vattenverk", brunn:"Brunn / reservoar", ovrigt:"Övrig anläggning"};
+const PRIORITETER = {hog:"Hög", medel:"Medel", lag:"Låg", ingen:"Ej bedömd"};
+
+let db = load();
+let currentPlan = null;
+
+function blank(){
+  return {anlaggningar:[], planer:{}, kontakter:[], ovningar:[], checklistor:{}, meta:{kommun:"", uppdaterad:"", version:"1.0"}};
+}
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(KEY)); if(d && d.anlaggningar) return Object.assign(blank(), d); }catch(e){}
+  return blank();
+}
+function save(){ db.meta.uppdaterad = new Date().toISOString().slice(0,10); localStorage.setItem(KEY, JSON.stringify(db)); }
+function uid(){ return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,8); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dateStr(iso){ return iso ? iso : ""; }
+
+/* ---------- Navigation ---------- */
+function show(v){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
+  document.querySelectorAll("main section").forEach(s=>s.hidden = s.id !== "view-"+v);
+  const r = {start:renderStart, anlaggning:renderAnlaggningar, plan:renderPlaner, kontakt:renderKontakter, checklista:renderChecklistor, ovning:renderOvningar, om:renderOm}[v];
+  r();
+  window.scrollTo(0,0);
+}
+
+/* ---------- Översikt ---------- */
+function renderStart(){
+  const n = db.anlaggningar.length, k = db.kontakter.length, o = db.ovningar.length;
+  const planer = Object.keys(db.planer).length;
+  const byType = {};
+  db.anlaggningar.forEach(a => byType[a.typ] = (byType[a.typ]||0)+1);
+  const hog = db.anlaggningar.filter(a=>a.prioritet==="hog").length;
+  el("view-start").innerHTML = `
+  <h2>Översikt – ${esc(db.meta.kommun || "Kommun")}</h2>
+  <p class="hint">Startpunkt för VA‑beredskapsplaneringen. Fyll i kommunens namn nedan, registrera anläggningar och skriv sedan beredskapsplaner för varje anläggning.</p>
+  <div class="card no-print">
+    <h3 style="margin:0 0 6px">Kommun / VA‑organisation</h3>
+    <div class="row-flex">
+      <input type="text" id="kommun" placeholder="Kommunens namn" value="${esc(db.meta.kommun)}" style="flex:1;min-width:220px">
+      <button class="primary" onclick="saveKommun()">Spara</button>
+    </div>
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="stat"><b>${n}</b><span>Registrerade anläggningar</span></div>
+    <div class="stat"><b>${planer}</b><span>Beredskapsplaner</span></div>
+    <div class="stat"><b>${k}</b><span>Kontakter / resurser</span></div>
+    <div class="stat"><b>${o}</b><span>Övningar &amp; händelser</span></div>
+    <div class="stat"><b>${hog}</b><span>Anläggningar med hög prioritet</span></div>
+  </div>
+  <div class="card">
+    <h3>Anläggningar per typ</h3>
+    ${n ? `<table><tr><th>Typ</th><th>Antal</th></tr>${Object.entries(TYPER).map(([t,l])=>`<tr><td>${l}</td><td>${byType[t]||0}</td></tr>`).join("")}</table>` : `<div class="empty">Inga anläggningar registrerade ännu. Gå till fliken ”Anläggningar”.</div>`}
+  </div>`;
+  el("kommun").addEventListener("keydown", e=>{ if(e.key==="Enter") saveKommun(); });
+}
+function saveKommun(){ db.meta.kommun = el("kommun").value.trim(); save(); renderStart(); }
+function el(id){ return document.getElementById(id); }
+
+/* ---------- Anläggningar ---------- */
+function renderAnlaggningar(){
+  el("view-anlaggning").innerHTML = `
+  <h2>Anläggningar</h2>
+  <p class="hint">Registrera pumpstationer, ledningar, verk, brunnar m.m. Anläggningen blir grund för dess beredskapsplan.</p>
+  <div class="card no-print">
+    <h3 style="margin-top:0">Ny / redigera anläggning</h3>
+    <form id="anlForm" onsubmit="sparaAnlaggning(event)">
+      <input type="hidden" id="a_id">
+      <div class="grid two">
+        <div>
+          <label>Namn / beteckning *</label><input type="text" id="a_namn" required placeholder="t.ex. PS Björkbacken">
+          <label>Typ *</label><select id="a_typ">${Object.entries(TYPER).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+          <label>Kritisk prioritet</label><select id="a_prio">${Object.entries(PRIORITETER).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+        </div>
+        <div>
+          <label>Plats / adress</label><input type="text" id="a_plats">
+          <label>Antal anslutna hushåll (ca)</label><input type="number" id="a_hushall" min="0">
+          <label>Koordinat (lat, long)</label><input type="text" id="a_koord" placeholder="t.ex. 59.33, 18.06">
+        </div>
+      </div>
+      <label>Driftstatus / teknisk beskrivning</label><textarea id="a_beskrivning" placeholder="T.ex. 2 st pumpar (1 drift/1 reserv), larm via GSM, nödgeneratorförsörjning saknas…"></textarea>
+      <label>Berörda verksamheter vid driftstörning</label><input type="text" id="a_berorda" placeholder="t.ex. skola, äldreboende, livsmedelsverkstad">
+      <div class="row-flex" style="margin-top:12px">
+        <button class="primary" type="submit">Spara anläggning</button>
+        <button class="ghost" type="button" onclick="resetAnlForm()">Rensa formulär</button>
+        <button class="ghost" type="button" onclick="skapaPlanFranForm()">Skapa beredskapsplan för denna anläggning</button>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Registrerade anläggningar (${db.anlaggningar.length})</h3>
+    ${db.anlaggningar.length ? `<table><tr><th>Namn</th><th>Typ</th><th>Prio</th><th>Hushåll</th><th>Plan</th><th></th></tr>
+      ${db.anlaggningar.map(a=>`<tr>
+        <td><b>${esc(a.namn)}</b><br><small>${esc(a.plats||"")}</small></td>
+        <td><span class="chip ${a.typ}">${TYPER[a.typ]||a.typ}</span></td>
+        <td><span class="prio ${a.prioritet}"></span>${PRIORITETER[a.prioritet]||""}</td>
+        <td>${a.hushall||"—"}</td>
+        <td>${db.planer[a.id] ? "✔" : "—"}</td>
+        <td class="no-print">
+          <button class="link" onclick="editAnl('${a.id}')">Redigera</button> ·
+          <button class="link" onclick="oppnaPlan('${a.id}')">Plan</button> ·
+          <button class="link" style="color:#b3261e" onclick="raderaAnl('${a.id}')">Radera</button>
+        </td></tr>`).join("")}</table>` : `<div class="empty">Inga anläggningar än.</div>`}
+  </div>`;
+}
+function resetAnlForm(){ if(el("anlForm")) el("anlForm").reset(); el("a_id").value=""; }
+function redigeraFormFran(a){
+  el("a_id").value=a.id; el("a_namn").value=a.namn; el("a_typ").value=a.typ;
+  el("a_prio").value=a.prioritet||"ingen"; el("a_plats").value=a.plats||"";
+  el("a_hushall").value=a.hushall||""; el("a_koord").value=a.koord||"";
+  el("a_beskrivning").value=a.beskrivning||""; el("a_berorda").value=a.berorda||"";
+}
+function editAnl(id){ const a=db.anlaggningar.find(x=>x.id===id); if(a){ redigeraFormFran(a); window.scrollTo(0,0);} }
+function sparaAnlaggning(e){
+  e.preventDefault();
+  const data = {
+    namn: el("a_namn").value.trim(), typ: el("a_typ").value,
+    prioritet: el("a_prio").value, plats: el("a_plats").value.trim(),
+    hushall: el("a_hushall").value ? parseInt(el("a_hushall").value) : null,
+    koord: el("a_koord").value.trim(), beskrivning: el("a_beskrivning").value.trim(),
+    berorda: el("a_berorda").value.trim()
+  };
+  if(!data.namn) return;
+  const id = el("a_id").value;
+  if(id){ const a=db.anlaggningar.find(x=>x.id===id); Object.assign(a, data); }
+  else db.anlaggningar.push(Object.assign({id:uid()}, data));
+  save(); renderAnlaggningar();
+}
+function raderaAnl(id){
+  const a = db.anlaggningar.find(x=>x.id===id);
+  if(!confirm(`Radera anläggningen "${a? a.namn : ""}"? Tillhörande beredskapsplan tas också bort.`)) return;
+  db.anlaggningar = db.anlaggningar.filter(x=>x.id!==id);
+  delete db.planer[id];
+  save(); renderAnlaggningar();
+}
+function skapaPlanFranForm(){
+  const id = el("a_id").value;
+  if(!id){ alert("Spara anläggningen först."); return; }
+  oppnaPlan(id);
+}
+function oppnaPlan(id){ currentPlan = id; show("plan"); }
+
+/* ---------- Beredskapsplaner ---------- */
+function defaultPlan(a){
+  return {
+    id:a.id, anlaggning:a.namn, revision:1, godkannare:"", godkant:"",
+    risker:[], atgarder:[], resurser:[], noter:"",
+    larmlista:[]
+  };
+}
+function renderPlaner(){
+  const planList = db.anlaggningar.map(a=>({a, p:db.planer[a.id]}));
+  let html = `
+  <h2>Beredskapsplaner</h2>
+  <p class="hint">En beredskapsplan per anläggning: riskbedömning, åtgärder vid driftstörning, kontaktpersoner och resurser. Vid driftstörning: öppna planen och följ åtgärderna i prioritetsordning.</p>
+  <div class="card">
+    <h3>Planöversikt</h3>
+    ${planList.length ? `<table><tr><th>Anläggning</th><th>Status</th><th>Revision</th><th>Öppna</th></tr>
+      ${planList.map(({a,p})=>`<tr><td>${esc(a.namn)}</td>
+      <td>${p?`<span class="chip pump">Upprättad</span>`:`<span class="chip ovrigt">Saknas</span>`}</td>
+      <td>${p? esc(p.revision||1):"—"}</td>
+      <td><button class="link" onclick="oppnaPlan('${a.id}')">${p?"Öppna":"Skapa"}</button></td></tr>`).join("")}
+    </table>` : `<div class="empty">Registrera anläggningar först.</div>`}
+  </div>`;
+  if(currentPlan && db.anlaggningar.find(x=>x.id===currentPlan)){
+    const a = db.anlaggningar.find(x=>x.id===currentPlan);
+    const p = ensurePlan(currentPlan);
+    html += `
+    <div class="card plan-print">
+      <div class="row-flex" style="justify-content:space-between">
+        <h3>Beredskapsplan – ${esc(a.namn)}</h3>
+        <div class="no-print"><button class="ghost" onclick="window.print()">Skriv ut planen</button></div>
+      </div>
+      <div class="grid two">
+        <div>
+          <label>Anläggningstyp</label><div>${TYPER[a.typ]||a.typ} · prioritet: <span class="prio ${a.prioritet}"></span>${PRIORITETER[a.prioritet]||""}</div>
+          <label>Plats</label><div>${esc(a.plats||"—")} ${a.koord?`(${esc(a.koord)})`:""}</div>
+          <label>Berörda hushåll / verksamheter</label><div>${a.hushall||"—"} hushåll · ${esc(a.berorda||"—")}</div>
+        </div>
+        <div>
+          <label>Revision</label><input type="number" id="p_rev" value="${esc(p.revision||1)}" min="1" onchange="uppdPlan('revision', parseInt(this.value)||1)">
+          <label>Godkänd av / datum</label><div class="row-flex">
+            <input type="text" id="p_godk" value="${esc(p.godkannare||"")}" placeholder="Namn" style="flex:1" onchange="uppdPlan('godkannare', this.value)">
+            <input type="date" value="${esc(p.godkant||"")}" onchange="uppdPlan('godkant', this.value)">
+          </div>
+        </div>
+      </div>
+      <label>Teknisk beskrivning</label><div>${esc(a.beskrivning||"—")}</div>
+    </div>
+    <div class="card plan-print"><h3>Riskbedömning</h3>
+      <table><tr><th>Risk / händelse</th><th>Sannolikhet</th><th>Konsekvens</th><th>Vald nivå</th><th></th></tr>
+      ${p.risker.map((r,i)=>`<tr>
+        <td>${esc(r.risk)}</td><td>${esc(r.sann)}</td><td>${esc(r.kons)}</td>
+        <td><span class="prio ${r.niva}"></span>${PRIORITETER[r.niva]||"—"}</td>
+        <td class="no-print"><button class="danger" onclick="delRad('risker',${i},renderPlaner)">Ta bort</button></td></tr>`).join("")}
+      </table>
+      <form class="no-print" style="margin-top:12px" onsubmit="addRad('risker',{risk:this.elements.risk.value, sann:this.elements.sann.value, kons:this.elements.kons.value, niva:this.elements.niva.value}); this.reset(); return false;">
+        <div class="grid two">
+          <div><label>Risk / händelse</label><input name="risk" required placeholder="t.ex. Strömavbrott > 4 h, översvämning, pumpbrott, ledningsbrott"></div>
+          <div><label>Nivå</label><select name="niva">${Object.entries(PRIORITETER).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+          <div><label>Sannolikhet (1‑5)</label><input name="sann" type="number" min="1" max="5"></div>
+          <div><label>Konsekvens (1‑5)</label><input name="kons" type="number" min="1" max="5"></div>
+        </div>
+        <button class="primary" style="margin-top:10px">Lägg till risk</button>
+      </form>
+    </div>
+    <div class="card plan-print"><h3>Åtgärder vid driftstörning (prioritetsordning)</h3>
+      <table><tr><th>#</th><th>Åtgärd</th><th>Ansvarig</th><th>Från</th><th></th></tr>
+      ${p.atgarder.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.text)}</td><td>${esc(r.ansvarig||"—")}</td><td>${esc(r.tid||"—")}</td>
+        <td class="no-print"><button class="danger" onclick="delRad('atgarder',${i},renderPlaner)">Ta bort</button></td></tr>`).join("")}
+      </table>
+      <form class="no-print" style="margin-top:12px" onsubmit="addRad('atgarder',{text:this.elements.text.value, ansvarig:this.elements.ansvarig.value, tid:this.elements.tid.value}); this.reset(); return false;">
+        <label>Åtgärd</label><input name="text" required placeholder="t.ex. Kontrollera larm och pumpstatus på plats">
+        <div class="grid two">
+          <div><label>Ansvarig / funktion</label><input name="ansvarig" placeholder="t.ex. Jour VA, el‑PAT"></div>
+          <div><label>Åtgärdas inom</label><input name="tid" placeholder="t.ex. 1 timme"></div>
+        </div>
+        <button class="primary" style="margin-top:10px">Lägg till åtgärd</button>
+      </form>
+    </div>
+    <div class="card plan-print"><h3>Resurser &amp; kontakter för anläggningen</h3>
+      <table><tr><th>Resurs / kontakt</th><th>Telefon</th><th>Anteckning</th><th></th></tr>
+        ${p.resurser.map((r,i)=>`<tr><td>${esc(r.namn)}</td><td>${esc(r.tel||"—")}</td><td>${esc(r.not||"—")}</td>
+        <td class="no-print"><button class="danger" onclick="delRad('resurser',${i},renderPlaner)">Ta bort</button></td></tr>`).join("")}
+      </table>
+      <form class="no-print" style="margin-top:12px" onsubmit="addRad('resurser',{namn:this.elements.namn.value, tel:this.elements.tel.value, not:this.elements.not.value}); this.reset(); return false;">
+        <div class="grid two">
+          <div><label>Resurs / kontakt</label><input name="namn" required placeholder="t.ex. Tankbilsföretag, eljour, reservpump"></div>
+          <div><label>Telefon</label><input name="tel"></div>
+        </div>
+        <label>Anteckning</label><input name="not">
+        <button class="primary" style="margin-top:10px">Lägg till resurs</button>
+      </form>
+      ${db.kontakter.length?`<details style="margin-top:10px"><summary>Kopiera från kontaktregistret</summary>
+        ${db.kontakter.map((k,i)=>`<div class="row-flex" style="padding:4px 0"><span style="flex:1">${esc(k.namn)} (${esc(k.typ||"")})</span><button class="ghost" type="button" onclick="addRad('resurser',{namn:'${esc(k.namn).replace(/'/g,"\\'")}', tel:'${esc(k.tel||"").replace(/'/g,"\\'")}', not:'${esc(k.not||"").replace(/'/g,"\\'")}'})">Kopiera</button></div>`).join("")}
+      </details>`:""}
+    </div>
+    <div class="card plan-print"><h3>Övriga anteckningar om planen</h3>
+      <textarea onchange="uppdPlan('noter', this.value)" placeholder="T.ex. erfarenheter från tidigare händelser eller övningar, rutiner för information till allmänheten">${esc(p.noter||"")}</textarea>
+    </div>`;
+  }
+  el("view-plan").innerHTML = html;
+}
+function ensurePlan(id){
+  if(!db.planer[id]){
+    const a = db.anlaggningar.find(x=>x.id===id);
+    db.planer[id] = defaultPlan(a);
+  }
+  return db.planer[id];
+}
+function addRad(key, obj){
+  const p = ensurePlan(currentPlan);
+  p[key].push(obj); save(); renderPlaner();
+}
+function delRad(key, i, rerender){
+  const p = ensurePlan(currentPlan);
+  p[key].splice(i,1); save(); rerender();
+}
+function uppdPlan(f, v){ const p = ensurePlan(currentPlan); p[f]=v; save(); }
+
+/* ---------- Kontakter ---------- */
+const KONTAKTTYPER = ["VA‑jour", "El‑jour / el PAT", "Entreprenör", "Leverantör (pumpar m.m.)", "Tankbil / slambil", "Myndighet", "Media/PU", "Övrigt"];
+function renderKontakter(){
+  el("view-kontakt").innerHTML = `
+  <h2>Kontaktregister</h2>
+  <p class="hint">Centrala kontakter och resurser som används i beredskapsplanerna. Ordenade per kategori.</p>
+  <div class="card no-print">
+    <h3 style="margin-top:0">Ny kontakt</h3>
+    <form onsubmit="sparaKontakt(event)">
+      <input type="hidden" id="k_id">
+      <div class="grid two">
+        <div>
+          <label>Namn / företag *</label><input id="k_namn" required>
+          <label>Kategori</label><select id="k_typ">${KONTAKTTYPER.map(t=>`<option>${t}</option>`).join("")}</select>
+        </div>
+        <div>
+          <label>Telefon (jour)</label><input id="k_tel">
+          <label>Kontaktperson</label><input id="k_person">
+        </div>
+      </div>
+      <label>Anteckning</label><input id="k_not">
+      <div class="row-flex" style="margin-top:12px"><button class="primary">Spara kontakt</button><button class="ghost" type="button" onclick="this.form.reset();el('k_id').value=''">Rensa</button></div>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Register (${db.kontakter.length})</h3>
+    ${db.kontakter.length?`<table><tr><th>Namn</th><th>Kategori</th><th>Telefon</th><th>Person</th><th>Anteckning</th><th></th></tr>
+    ${db.kontakter.map((k,i)=>`<tr><td><b>${esc(k.namn)}</b></td><td>${esc(k.typ||"—")}</td><td>${esc(k.tel||"—")}</td><td>${esc(k.person||"—")}</td><td>${esc(k.not||"—")}</td>
+      <td class="no-print"><button class="link" onclick="editKontakt(${i})">Redigera</button> · <button class="link" style="color:#b3261e" onclick="raderaKontakt(${i})">Radera</button></td></tr>`).join("")}</table>`:`<div class="empty">Inga kontakter.</div>`}
+  </div>`;
+}
+function sparaKontakt(e){
+  e.preventDefault();
+  const d = {namn:el("k_namn").value.trim(), typ:el("k_typ").value, tel:el("k_tel").value.trim(), person:el("k_person").value.trim(), not:el("k_not").value.trim()};
+  const id = el("k_id").value;
+  if(id){ Object.assign(db.kontakter.find((k,i)=>String(i)===id), d); }
+  else db.kontakter.push(d);
+  save(); renderKontakter();
+}
+function editKontakt(i){ const k=db.kontakter[i]; el("k_id").value=String(i); el("k_namn").value=k.namn; el("k_typ").value=k.typ||KONTAKTTYPER[0]; el("k_tel").value=k.tel||""; el("k_person").value=k.person||""; el("k_not").value=k.not||""; window.scrollTo(0,0); }
+function raderaKontakt(i){ if(confirm("Radera kontakten?")){ db.kontakter.splice(i,1); save(); renderKontakter(); } }
+
+/* ---------- Checklistor ---------- */
+const MALL = {
+  vid_storning: {namn:"Vid driftstörning – generell checklista", punkter:[
+    "Bekräfta larmet och vilken anläggning som berörs",
+    "Bedöm omfattning: pågående översvämning? backlopp/stopptid?",
+    "Larma ansvarig tjänsteman/tf VA‑chef",
+    "Ropa in jouren och vid behov entreprenör/el PAT",
+    "Informera berörda verksamheter (skola, vård, livsmedel)",
+    "Bedöm behov av kokvattenrekommendation – kontakta miljöförvaltningen",
+    "Dokumentera händelsen i övnings-/händelseloggen",
+    "Informera allmänheten vid behov (webb, sociala medier, lokalmedia)",
+    "Efteråt: följ upp och uppdatera beredskapsplanen"
+  ]},
+  strom: {namn:"Vid elavbrott / pumpstörning", punkter:[
+    "Kontrollera el‑försörjning och akutmottagare (frivillig från elbolaget)",
+    "Starta el‑aggregat om finns, eller sätt in hyrdaggregat",
+    "Kontrollera att reservpump startar och att larmet återställs",
+    "Överväg tankavgång/tillslangning (vakuum/toaletter) vid längre avbrott",
+    "Informera berörda abonnenter och fastighetsägare"
+  ]},
+  ledning: {namn:"Vid ledningsbrott", punkter:[
+    "Snabbt avgränsa: lokalisera läckan, stäng avsnörningsventiler",
+    "Larma entreprenör för grävningsarbete",
+    "Informera berörda abonnenter och verksamheter",
+    "Överväg kokvattenrekommendation eller spolning efter reparation",
+    "Kontakta livsmedelsverk/skolor vid avbrott i dricksvatten"
+  ]}
+};
+function renderChecklistor(){
+  const vars = Object.entries(db.checklistor);
+  el("view-checklista").innerHTML = `
+  <h2>Beredskapschecklistor</h2>
+  <p class="hint">Kryssa av per pågående händelse. Checkmallar nedan går att kopiera till en pågående händelse.</p>
+  <div class="card no-print">
+    <h3 style="margin-top:0">Skapa checklista från mall</h3>
+    <div class="row-flex">
+      <select id="cl_mall">${Object.entries(MALL).map(([k,m])=>`<option value="${k}">${m.namn}</option>`).join("")}</select>
+      <button class="primary" onclick="skappaChecklista()">Skapa</button>
+    </div>
+  </div>
+  ${vars.length ? vars.map(([id,c])=>`
+    <div class="card">
+      <div class="row-flex" style="justify-content:space-between"><h3 style="margin:0">${esc(c.namn)}</h3>
+      <div class="no-print"><button class="danger" onclick="raderaChecklista('${id}')">Ta bort</button></div></div>
+      <small style="color:var(--muted)">Skapad ${esc(c.skapad)}${c.preset?" · kopplad till "+esc(c.preset):""}</small>
+      ${c.punkter.map((p,i)=>`<label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:1em;font-weight:400;color:var(--ink)">
+        <input type="checkbox" ${p.ok?"checked":""} onchange="checkPunkt('${id}',${i},this.checked)" style="width:18px;height:18px;margin-top:2px">
+        <span style="${p.ok?'text-decoration:line-through;color:var(--muted)':''}">${esc(p.text)}</span></label>`).join("")}
+    </div>`).join("") : `<div class="empty">Inga checklistor skapade.</div>`}
+  <div class="card no-print">
+    <h3>Lägg till egen punkt i valfri checklista</h3>
+    <form onsubmit="addEgenPunkt(event)">
+      <div class="row-flex">
+        <select id="cl_target">${vars.map(([id,c])=>`<option value="${id}">${esc(c.namn)}</option>`).join("")||`<option disabled>Inga checklistor</option>`}</select>
+        <input id="cl_text" placeholder="Ny punkt…" required style="flex:1;min-width:200px">
+        <button class="primary">Lägg till</button>
+      </div>
+    </form>
+  </div>`;
+}
+function skappaChecklista(){
+  const mallKey = el("cl_mall").value, m = MALL[mallKey];
+  const id = uid();
+  db.checklistor[id] = {namn:m.namn, skapad:new Date().toISOString().slice(0,10), punkter:m.punkter.map(t=>({text:t, ok:false}))};
+  save(); renderChecklistor();
+}
+function checkPunkt(id, i, ok){ db.checklistor[id].punkter[i].ok = ok; save(); renderChecklistor(); }
+function addEgenPunkt(e){ e.preventDefault(); const id=el("cl_target").value; if(!id||!db.checklistor[id])return; db.checklistor[id].punkter.push({text:el("cl_text").value, ok:false}); e.target.reset(); save(); renderChecklistor(); }
+function raderaChecklista(id){ if(confirm("Ta bort checklistan?")){ delete db.checklistor[id]; save(); renderChecklistor(); } }
+
+/* ---------- Övningar & händelser ---------- */
+const TYPER_O = ["övning","driftstörning","annan händelse"];
+function renderOvningar(){
+  el("view-ovning").innerHTML = `
+  <h2>Övningar &amp; händelselog</h2>
+  <p class="hint">Logga övningar och verkliga händelser; använd erfarenheterna för att uppdatera planerna.</p>
+  <div class="card no-print">
+    <h3 style="margin-top:0">Ny post</h3>
+    <form onsubmit="sappOvning(event)">
+      <input type="hidden" id="o_id">
+      <div class="grid two">
+        <div>
+          <label>Typ</label><select id="o_typ">${TYPER_O.map(t=>`<option>${t}</option>`).join("")}</select>
+          <label>Datum *</label><input type="date" id="o_datum" required>
+          <label>Anläggning</label><select id="o_anl"><option value="">— ingen specifik —</option>${db.anlaggningar.map(a=>`<option value="${a.id}">${esc(a.namn)}</option>`).join("")}</select>
+        </div>
+        <div>
+          <label>Rubrik *</label><input id="o_rubrik" required>
+          <label>Genomfördes / sammanfattning</label><textarea id="o_text"></textarea>
+        </div>
+      </div>
+      <label>Följs upp i plan?</label><select id="o_folj"><option value="nej">Nej</option><option value="ja">Ja – plan uppdaterad</option></select>
+      <button class="primary" style="margin-top:10px">Spara post</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Logg (${db.ovningar.length})</h3>
+    ${db.ovningar.length?`<table><tr><th>Datum</th><th>Typ</th><th>Rubrik</th><th>Anläggning</th><th>Uppföljning</th><th></th></tr>
+    ${db.ovningar.slice().sort((a,b)=>(b.datum||"").localeCompare(a.datum||"")).map(o=>{const a = db.anlaggningar.find(x=>x.id===o.anl) ;return `<tr><td>${esc(o.datum)}</td><td>${esc(o.typ)}</td><td><b>${esc(o.rubrik)}</b>${o.text?`<br><small>${esc(o.text)}</small>`:""}</td><td>${a?esc(a.namn):"—"}</td><td>${o.folj==="ja"?"✔":"—"}</td>
+      <td class="no-print"><button class="link" onclick="raderOvning('${o.id}')">Radera</button></td></tr>`}).join("")}</table>`:`<div class="empty">Loggen är tom.</div>`}
+  </div>`;
+}
+function sappOvning(e){
+  e.preventDefault();
+  const d = {id:uid(), typ:el("o_typ").value, datum:el("o_datum").value, anl:el("o_anl").value, rubrik:el("o_rubrik").value.trim(), text:el("o_text").value.trim(), folj:el("o_folj").value};
+  const id = el("o_id").value;
+  if(id){ Object.assign(db.ovningar.find(x=>x.id===id), d); }
+  else db.ovningar.push(d);
+  save(); renderOvningar();
+}
+function raderOvning(id){ if(confirm("Radera posten?")){ db.ovningar = db.ovningar.filter(x=>x.id!==id); save(); renderOvningar(); } }
+
+/* ---------- Om ---------- */
+function renderOm(){
+  el("view-om").innerHTML = `
+  <h2>Om &amp; hjälp</h2>
+  <div class="card">
+    <h3>Så använder du appen</h3>
+    <ol>
+      <li><b>Kommun</b>: fyll i kommunens namn på översikten.</li>
+      <li><b>Anläggningar</b>: registrera pumpstationer, ledningar, verk, brunnar. Prioritera (hög/medel/låg) baserat på konsekvens vid driftstörning.</li>
+      <li><b>Kontakter</b>: bygg ett register för jourer, entreprenörer, leverantörer, tankbilar och myndigheter.</li>
+      <li><b>Beredskapsplaner</b>: skapa en plan per anläggning med riskbedömning, åtgärder och resurser. Kopiera in kontakter ur registret.</li>
+      <li><b>Checklistor</b>: använd mallarna vid övning eller verklig händelse och kryssa av allteftersom.</li>
+      <li><b>Övningar &amp; händelser</b>: logga övningar och störningar, och se till att erfarenheterna förs in i planerna (nya revisioner).</li>
+      <li><b>Utskrift</b>: öppna en beredskapsplan och klicka ”Skriv ut planen” – papperskopian kan förvaras i jourhytten/bilen.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>Data &amp; säkerhet</h3>
+    <p>Appen fungerar helt offline. All data sparas i webbläsarens lokala lagring (localStorage) på den dator du använder.</p>
+    <ul>
+      <li>Exportera regelbundet en JSON‑säkerhetskopia (”Exportera” uppe till höger).</li>
+      <li>Flytta/export av data mellan datorer sker med export‑/importfilerna.</li>
+      <li>Rensa webbläsardata kan ta bort planerna – gör alltid säkerhetskopior.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Stickprov för hållbar beredskap</h3>
+    <ul>
+      <li>Har alla kritiska anläggningar en uppdaterad beredskapsplan?</li>
+      <li>Är prioriteringen (hög/medel/låg) aktuell?</li>
+      <li>Har övningar genomförts och erfarenheter förts in i planerna?</li>
+      <li>Är kontaktregistret komplett och är telefonnummer verifierade?</li>
+    </ul>
+  </div>`;
+}
+
+/* ---------- Import / export / reset ---------- */
+function exportData(){
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "va-beredskapsplaner-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function importData(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = JSON.parse(r.result);
+      if(!d || !Array.isArray(d.anlaggningar)) throw new Error("Felaktig fil");
+      if(db.anlaggningar.length || Object.keys(db.planer).length){
+        if(!confirm("Vill du ersätta befintlig data med filens innehåll? (Avbryt = avbryter import)")) return;
+      }
+      db = Object.assign(blank(), d); save(); show("start");
+    }catch(err){ alert("Kunde inte läsa filen: " + err.message); }
+  };
+  r.readAsText(f);
+  ev.target.value = "";
+}
+function confirmReset(){
+  if(confirm("Radera ALL data (anläggningar, planer, kontakter, checklistor, logg)? Detta kan inte ångras.")){
+    db = blank(); save(); show("start");
+  }
+}
+
+show("start");
+</script>
+</body>
+</html>

@@ -16,13 +16,20 @@ En offline-app i en enda HTML‑fil som hjälper kommunen att upprätta och unde
 - **Kontaktregister** – jourer, el‑PAT, entreprenörer, leverantörer, tankbilar m.m., som kan kopieras rakt in i planerna.
 - **Beredskapschecklistor** – färdiga mallar ("Vid driftstörning", "Vid elavbrott/pumpstörning", "Vid ledningsbrott") som kan kryssas av vid övning eller skarpt läge.
 - **Övningar & händelselog** – logga övningar och verkliga händelser med uppföljning in i planerna.
-- **Export/import (JSON)** – säkerhetskopiera, dela eller flytta data mellan datorer. Sker helt lokalt via filer.
+- **Spara som HTML‑fil** – laddar ner appen med all data inbakad i en enda fil; öppnas var som helst, helt offline. Bästa sättet att spara och bevara sitt arbete.
+- **Export/import (JSON)** – extra säkerhetskopior och delning. Sker helt lokalt via filer.
 
 ## Viktigt om data
 
-- Data ligger bara i webbläsarens lokala lagring – rensar du webbläsardata försvinner planerna.
-- **Exportera regelbundet** en JSON‑säkerhetskopia (knappen "Exportera" uppe till höger).
-- För att flytta data till en annan dator: exportera filen och använd "Importera" på den andra datorn.
+- Data lagras automatiskt i webbläsarens lokala lagring – men rensar du webbläsardata försvinner planerna.
+- **Spara regelbundet med knappen "Spara som HTML‑fil"** (uppe till höger). Den laddar ner en ny kopia av appen med **all din data inbakad i själva filen**. Filen blir din huvudkopia: dubbelklicka på den så öppnas appen med allt innehåll, även på en annan dator.
+- Knappen "Exportera" ger en JSON‑backup, och "Importera" läser in sådana filer – bra för extra säkerhetskopior eller delning.
+
+### Arbetsflöde för den som gör ändringar i filen
+
+1. Öppna din senaste sparade HTML‑fil och arbeta i appen.
+2. Klicka "💾 Spara som HTML‑fil" när du är klar – du får en ny fil med alla ändringar.
+3. Filnamnet innehåller kommun och datum, så du kan spara versionsvis och ladda upp den senaste filen till detta repo.
 
 ## Utskrift
 

@@ -66,6 +66,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
     <div class="sub">Beredskapsplaner för kommunala VA‑anläggningar · offline · data sparas lokalt i webbläsaren</div>
   </div>
   <div class="row-flex no-print">
+    <button class="ghost" style="background:#fff;font-weight:600" onclick="sparaApp()">💾 Spara som HTML‑fil (med all data)</button>
     <button class="ghost" style="background:#fff" onclick="exportData()">Exportera (JSON)</button>
     <label class="ghost" style="background:#fff;cursor:pointer;padding:8px 14px;border-radius:8px;border:1px solid var(--line)">Importera<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
     <button class="ghost" style="background:#fff;color:#b3261e;border-color:#b3261e" onclick="confirmReset()">Rensa allt</button>
@@ -82,6 +83,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
   <button data-view="om" onclick="show('om')">Om &amp; hjälp</button>
 </nav>
 
+<script id="app-seed" type="application/json">{}</script>
 <main>
 <section id="view-start"></section>
 <section id="view-anlaggning" hidden></section>
@@ -93,7 +95,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
 </main>
 
 <footer>
-All data lagras endast lokalt i denna webbläsare (localStorage). Ta regelbundna säkerhetskopior med knappen ”Exportera”. Vid delning: exportera filen och öppna den på mottagarens dator med ”Importera”.
+Alla ändringar sparas automatiskt lokalt i webbläsaren (localStorage). Ta regelbundet säkerhetskopior med knappen ”Spara som HTML‑fil” – den skapar en ny app‑fil med allt innehåll inbakat. JSON‑knappen ”Exportera” ger en extra backup, och ”Importera” läser in sådana filer.
 </footer>
 
 <script>
@@ -109,7 +111,17 @@ function blank(){
   return {anlaggningar:[], planer:{}, kontakter:[], ovningar:[], checklistor:{}, meta:{kommun:"", uppdaterad:"", version:"1.0"}};
 }
 function load(){
-  try{ const d = JSON.parse(localStorage.getItem(KEY)); if(d && d.anlaggningar) return Object.assign(blank(), d); }catch(e){}
+  let lokal = null, inbad = null;
+  try{ const d = JSON.parse(localStorage.getItem(KEY)); if(d && d.anlaggningar) lokal = d; }catch(e){}
+  try{
+    const s = document.getElementById("app-seed");
+    if(s && s.textContent.trim()){ const d = JSON.parse(s.textContent); if(d && d.anlaggningar) inbad = d; }
+  }catch(e){}
+  if(lokal && inbad){
+    return String(lokal.meta.uppdaterad||"") >= String(inbad.meta.uppdaterad||"") ? Object.assign(blank(), lokal) : Object.assign(blank(), inbad);
+  }
+  if(lokal) return Object.assign(blank(), lokal);
+  if(inbad) return Object.assign(blank(), inbad);
   return blank();
 }
 function save(){ db.meta.uppdaterad = new Date().toISOString().slice(0,10); localStorage.setItem(KEY, JSON.stringify(db)); }
@@ -534,8 +546,9 @@ function renderOm(){
     <h3>Data &amp; säkerhet</h3>
     <p>Appen fungerar helt offline. All data sparas i webbläsarens lokala lagring (localStorage) på den dator du använder.</p>
     <ul>
-      <li>Exportera regelbundet en JSON‑säkerhetskopia (”Exportera” uppe till höger).</li>
-      <li>Flytta/export av data mellan datorer sker med export‑/importfilerna.</li>
+      <li><b>Spara som HTML‑fil</b> (uppe till höger): laddar ner en ny kopia av appen med all din data inbakad i själva filen. Använd den som din huvudkopia – dubbelklicka på den så öppnas appen med allt innehåll, även på en annan dator.</li>
+      <li>Exportera även en JSON‑säkerhetskopia (”Exportera”) – bra som extra backup.</li>
+      <li>Flytta/export av data mellan datorer sker enklast via ”Spara som HTML‑fil” eller export‑/importfilerna.</li>
       <li>Rensa webbläsardata kan ta bort planerna – gör alltid säkerhetskopior.</li>
     </ul>
   </div>
@@ -557,6 +570,20 @@ function exportData(){
   a.href = URL.createObjectURL(blob);
   a.download = "va-beredskapsplaner-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + new Date().toISOString().slice(0,10) + ".json";
   a.click(); URL.revokeObjectURL(a.href);
+}
+
+function sparaApp(){
+  save();
+  const klona = document.documentElement.cloneNode(true);
+  klona.querySelectorAll("main section").forEach(s => s.innerHTML = "");
+  const seed = klona.querySelector("#app-seed");
+  seed.textContent = JSON.stringify(db).replace(/</g, "\\u003c");
+  const blob = new Blob(["<!DOCTYPE html>\n" + klona.outerHTML], {type:"text/html;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "va-beredskap-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + new Date().toISOString().slice(0,10) + ".html";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 function importData(ev){
   const f = ev.target.files[0]; if(!f) return;

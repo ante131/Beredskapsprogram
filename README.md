@@ -26,7 +26,7 @@ Underlaget bygger på dokumentet *Mall och checklista – VA‑beredskapsplan f�
 ## Viktigt om data
 
 - All data lagras automatiskt lokalt i webbläsaren – men rensar du webbläsardata försvinner arbetet.
-- **Spara regelbundet med ”💾 Spara som HTML‑fil”** (uppe till höger). Filen blir din huvudkopia: dubbelklicka på den så öppnas appen med allt innehåll, även på en annan dator. Filnamnet innehåller kommun och datum.
+- **Spara regelbundet med ”💾 Spara som HTML‑fil”** (uppe till höger). Filen blir din huvudkopia: dubbelklicka på den så öppnas appen med allt innehåll, även på en annan dator. Filnamnet innehåller kommun, datum och klockslag (t.ex. `va-beredskap-Uppvidinge-2025-01-15_kl14.32.07.html`), så varje sparning blir unik och webbläsarens cache aldrig blandar ihop versioner.
 - Knappen ”Exportera” ger en JSON‑backup, och ”Importera” läser in sådana filer.
 - **Sekretess:** mallen påpekar att avsnitt 9 (höjd beredskap) kan behöva skyddsvärderas – håll i så fall den delen i separat dokument med begränsad spridning.
 

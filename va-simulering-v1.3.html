@@ -108,6 +108,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
   <button data-view="jamfor" onclick="show('jamfor')">Jämförelse</button>
   <button data-view="atgard" onclick="show('atgard')">Rekommenderade lösningar</button>
   <button data-view="fakta" onclick="show('fakta')">Kommunfakta Uppvidinge</button>
+  <button data-view="samhallen" onclick="show('samhallen')">Samhällen</button>
   <button data-view="om" onclick="show('om')">Om &amp; hjälp</button>
 </nav>
 
@@ -116,6 +117,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
 <section id="view-jamfor" hidden></section>
 <section id="view-atgard" hidden></section>
 <section id="view-fakta" hidden></section>
+<section id="view-samhallen" hidden></section>
 <section id="view-om" hidden></section>
 </main>
 
@@ -126,10 +128,10 @@ All data lagras endast lokalt i denna webbläsare (localStorage). Spara regelbun
 <script type="application/json" id="app-seed"></script>
 <script>
 "use strict";
-/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.2.html). Bumpa BÅDA vid varje ny version
-   (nästa: va-simulering-v1.3.html + APP_VERSION = "v1.3") så får varje version en unik URL och
+/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.3.html). Bumpa BÅDA vid varje ny version
+   (nästa: va-simulering-v1.4.html + APP_VERSION = "v1.4") så får varje version en unik URL och
    Chrome kan inte cacha en gammal fil. Sparade HTML-filer får alltid unika namn med klockslag. */
-const APP_VERSION = "v1.2";
+const APP_VERSION = "v1.3";
 /* ============================ SCENARIER ============================ */
 const GRAD_NAMN = ["1 · Lindrig","2 · Måttlig","3 · Allvarlig","4 · Svår","5 · Katastrofal"];
 
@@ -358,6 +360,20 @@ const ORTER_TAB = [
  ["Landsbygden (enskilda brunnar)","ca 25 % av befolkningen"]
 ];
 
+/* Förutsättningar per samhälle – redigeras i fliken Samhällen (db.orter) */
+const ORTER_DEF = [
+ {id:"aseda",      namn:"Åseda",                      inv:2740, verk:"Åseda vattenverk",       reservoar:1500, torn:500, reservkraft:1, tank:2000, forbr:6},
+ {id:"lenhovda",   namn:"Lenhovda",                   inv:1770, verk:"Lenhovda vattenverk",    reservoar:800,  torn:300, reservkraft:1, tank:1000, forbr:6},
+ {id:"norrhult",   namn:"Norrhult-Klavreström",       inv:1215, verk:"Norrhults vattenverk",   reservoar:600,  torn:0,   reservkraft:1, tank:800,  forbr:6},
+ {id:"alstermo",   namn:"Alstermo",                   inv:875,  verk:"Alstermo vattenverk",    reservoar:500,  torn:200, reservkraft:1, tank:600,  forbr:6},
+ {id:"alghult",    namn:"Älghult",                    inv:460,  verk:"Alstermo vattenverk",    reservoar:300,  torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"froseke",    namn:"Fröseke",                    inv:170,  verk:"Fröseke vattenverk",     reservoar:150,  torn:0,   reservkraft:0, tank:200,  forbr:6},
+ {id:"lindshammar",namn:"Lindshammar",                inv:150,  verk:"Lindshammar vattenverk", reservoar:100,  torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"marhult",    namn:"Marhult",                    inv:120,  verk:"Marhult vattenverk",     reservoar:80,   torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"savjostrom", namn:"Sävsjöström",                inv:100,  verk:"Sävsjöströms vattenverk",reservoar:80,   torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"landsbygd",  namn:"Landsbygden (enskilda brunnar)", inv:0, verk:"Egen brunn",          reservoar:0,    torn:0,   reservkraft:0, tank:0,    forbr:6}
+];
+
 /* ============================ Lagring ============================ */
 const KEY = "va-simulering-uppvidinge-v1";
 let db = load();
@@ -367,7 +383,7 @@ let spelar = null;
 function blank(){
   return {fakta:{befolkning:9061, andelAnslutna:75, normalForbrukning:160, nodMin:3, nodMax:5,
                  antalVerk:8, antalARV:4, avloppM3:6000, avloppAbonnenter:2800},
-          sim:{}, atgard:{}, fokus:{}, egna:{}, aktiv:SCENARIOS[0].id,
+          sim:{}, atgard:{}, fokus:{}, egna:{}, orter:ORTER_DEF.map(o=>Object.assign({},o)), aktiv:SCENARIOS[0].id,
           meta:{kommun:"Uppvidinge kommun", uppdaterad:"", version:APP_VERSION}};
 }
 function migrate(d){
@@ -385,6 +401,8 @@ function migrate(d){
   });
   if(typeof d.fokus!=="object"||!d.fokus) d.fokus = {};
   if(typeof d.egna!=="object"||!d.egna) d.egna = {};
+  if(!Array.isArray(d.orter)) d.orter = ORTER_DEF.map(o=>Object.assign({},o));
+  else d.orter = ORTER_DEF.map(def=>Object.assign({}, def, d.orter.find(x=>x.id===def.id)||{}));
   if(!SCENARIOS.some(s=>s.id===d.aktiv)) d.aktiv = b.aktiv;
   return d;
 }
@@ -525,7 +543,7 @@ function show(v){
   nu = v;
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
   document.querySelectorAll("main section").forEach(s=>s.hidden = s.id !== "view-"+v);
-  ({simulera:renderSim, jamfor:renderJamfor, atgard:renderAtgard, fakta:renderFakta, om:renderOm})[v]();
+  ({simulera:renderSim, jamfor:renderJamfor, atgard:renderAtgard, fakta:renderFakta, samhallen:renderSamhallen, om:renderOm})[v]();
   window.scrollTo(0,0);
 }
 
@@ -590,6 +608,12 @@ function renderSim(){
     </div>
     <div class="no-print" style="margin-bottom:8px">${fokusHtml(s)}</div>
     ${mixHtml(s, mix)}
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">3c · Påverkan per samhälle (vid vald krisintensitet ${g})</h3>
+    ${orterHtml(s, mix)}
+    <button class="ghost small no-print" onclick="show('samhallen')">Redigera förutsättningar per samhälle →</button>
   </div>
 
   <div class="card">
@@ -665,6 +689,10 @@ function sammanstallningText(s, b, g){
     "RESULTAT PER KRISINTENSITET (utan → med):",
     ...[1,2,3,4,5].map(g=>{ const mx = losningsMix(s, g, db.fokus[s.id]||"mix"); return "- Grad " + g + ": produktion " + mx.b0.prod + "→" + Math.round(mx.e.prod) + " %, utan vatten " + fmt(mx.b0.utan) + "→" + fmt(mx.e.utan) + " pers, " + mx.b0.liter + "→" + mx.e.liter + " L/p/d, " + mx.b0.dagar + "→" + mx.e.dagar + " dygn, kostnad " + mx.b0.kost + "→" + mx.e.kost + " Mkr"; }),
     "",
+    "",
+    "SAMHÄLLEN VID VALD INTENSITET (utan → med, personer utan vatten):",
+    ...(db.orter||[]).map(o=>"- " + o.namn + ": " + fmt(ortUtan(o,s,g,0)) + " → " + fmt(ortUtan(o,s,g,mix.m)) + " (buffert " + Math.round(ortBuffert(o)) + " h)"),
+    "",
     "Kopplat till händelseplan " + s.handel + " i VA‑beredskapsappen (index.html)."
   ];
   return lines.join("\n");
@@ -723,6 +751,75 @@ function taBortEgen(sid, i){ (db.egna[sid]||[]).splice(i,1); save(); renderAtgar
 function sattEgenNiva(sid, i, v){
   const arr = db.egna[sid]||[];
   if(arr[i]){ arr[i].niva = Math.max(0, Math.min(3, parseInt(v,10)||0)); save(); renderAtgard(); if(nu==="simulera") renderSim(); }
+}
+
+/* ============================ Samhällen: förutsättningar & påverkan ============================ */
+function ortInv(o){
+  if(o.id!=="landsbygd") return o.inv|0;
+  let t = 0;
+  (db.orter||[]).forEach(x=>{ if(x.id!=="landsbygd") t += x.inv|0; });
+  return Math.max(0, (db.fakta.befolkning|0) - t);
+}
+function ortBuffert(o){
+  const inv = ortInv(o);
+  const dagligL = inv * db.fakta.normalForbrukning;
+  const resL = ((o.reservoar||0)+(o.torn||0))*1000;
+  const resH = dagligL>0 ? resL/(dagligL/24) : 0;
+  const fuelH = (o.reservkraft && (o.tank||0)>0) ? (o.tank||0)/Math.max(0.1,(o.forbr||6)) : 0;
+  if(resL>0 && fuelH>0) return Math.min(resH, fuelH);
+  if(resL>0) return resH;
+  return fuelH;
+}
+function ortUtan(o, s, g, m){
+  const inv = ortInv(o);
+  const b = berakna(s, g);
+  const klararH = ortBuffert(o);
+  const skydd = b.dagar>0 ? Math.min(1, klararH/(b.dagar*24)) : 0;
+  return Math.round(inv * s.aff[g-1] * (1-skydd) * (1-(m||0)));
+}
+function saveOrt(id, key, val){
+  const o = (db.orter||[]).find(x=>x.id===id);
+  if(!o) return;
+  if(["inv","reservoar","torn","tank","forbr"].includes(key)){ const v = parseFloat(val); o[key] = isNaN(v)?0:v; }
+  else if(key==="reservkraft"){ o.reservkraft = val==="1" ? 1 : 0; }
+  else o[key] = val;
+  save(); renderSamhallen(); if(nu==="simulera") renderSim();
+}
+function orterHtml(s, mix){
+  const g = grad(s);
+  const rows = (db.orter||[]).map(o=>{
+    const klarar = ortBuffert(o);
+    const u0 = ortUtan(o, s, g, 0);
+    const u1 = ortUtan(o, s, g, mix.m);
+    return `<tr><td><b>${esc(o.namn)}</b></td><td>${fmt(ortInv(o))}</td><td>${esc(o.verk)}</td><td>${Math.round(klarar)}</td><td>${fmt(u0)}</td><td><b>${fmt(u1)}</b></td></tr>`;
+  }).join("");
+  const tot0 = (db.orter||[]).reduce((t,o)=>t+ortUtan(o,s,g,0),0);
+  const tot1 = (db.orter||[]).reduce((t,o)=>t+ortUtan(o,s,g,mix.m),0);
+  return `<table><tr><th>Samhälle</th><th>Inv</th><th>Vattenverk</th><th>Buffert utan prod. (h)</th><th>Utan vatten – utan åtgärder</th><th>Utan vatten – med utvärderad lösning</th></tr>${rows}
+  <tr style="font-weight:700;background:var(--chipBg)"><td>Totalt (ca)</td><td>${fmt((db.orter||[]).reduce((t,o)=>t+ortInv(o),0))}</td><td></td><td></td><td>${fmt(tot0)}</td><td>${fmt(tot1)}</td></tr></table>
+  <p class="hint">Buffert = hur länge reservoar + vattentorn (och ev. reservkraft med bränsle från ”el-tanken”) räcker vid produktionsstopp, beräknat från ortens förutsättningar i fliken Samhällen. Landsbygden med egen brunn är beroende av el till pumpen.</p>`;
+}
+function renderSamhallen(){
+  const verks = VERK.map(v=>v[0]).concat(["Egen brunn"]);
+  el("view-samhallen").innerHTML = `
+  <h2>Samhällen i Uppvidinge – förutsättningar</h2>
+  <p class="hint">Ange förutsättningar per samhälle: invånare, vattenverk, reservoar- och vattentornsvolym (m³), reservkraft ja/nej, bränsletank (”el-tank”, L) och generatorförbrukning (L/h). Sparas lokalt och används i Simulering (kort 3c) för buffertid och påverkan per samhälle. Landsbygden = kommunens befolkning minus tätorterna (beräknas automatiskt).</p>
+  <div class="card" style="overflow-x:auto">
+  <table>
+   <tr><th>Samhälle</th><th>Inv</th><th>Vattenverk</th><th>Reservoir m³</th><th>Vattentorn m³</th><th>Reservkraft</th><th>Bränsletank L</th><th>Förbr. L/h</th><th>Förbr. m³/d</th><th>Buffert h</th></tr>
+   ${(db.orter||[]).map(o=>`<tr>
+     <td><input type="text" value="${esc(o.namn)}" onchange="saveOrt('${o.id}','namn',this.value)" style="min-width:170px"></td>
+     <td><input type="number" value="${ortInv(o)}" ${o.id==="landsbygd"?'disabled title="Beräknas från kommunfakta"':''} onchange="saveOrt('${o.id}','inv',this.value)" style="width:85px"></td>
+     <td><select onchange="saveOrt('${o.id}','verk',this.value)">${verks.map(v=>`<option${v===o.verk?" selected":""}>${esc(v)}</option>`).join("")}</select></td>
+     <td><input type="number" value="${o.reservoar||0}" onchange="saveOrt('${o.id}','reservoar',this.value)" style="width:85px"></td>
+     <td><input type="number" value="${o.torn||0}" onchange="saveOrt('${o.id}','torn',this.value)" style="width:85px"></td>
+     <td><select onchange="saveOrt('${o.id}','reservkraft',this.value)"><option value="1"${o.reservkraft?" selected":""}>Ja</option><option value="0"${o.reservkraft?"":" selected"}>Nej</option></select></td>
+     <td><input type="number" value="${o.tank||0}" onchange="saveOrt('${o.id}','tank',this.value)" style="width:85px"></td>
+     <td><input type="number" value="${o.forbr||6}" step="0.5" onchange="saveOrt('${o.id}','forbr',this.value)" style="width:70px"></td>
+     <td>${(ortInv(o)*db.fakta.normalForbrukning/1000).toFixed(1)}</td>
+     <td><b>${Math.round(ortBuffert(o))}</b></td>
+   </tr>`).join("")}
+  </table></div>`;
 }
 
 /* ============================ Tidslinje-uppspelning ============================ */
@@ -912,6 +1009,7 @@ function renderOm(){
       <li>Ställ in <b>allvarlighetsgrad 1–5</b> och se direkt beräknat utfall: produktion %, personer utan vatten, liter per person och dygn, varaktighet, kostnad och påverkade orter.</li>
       <li>Spela upp <b>tidslinjen</b> dag för dag – bra underlag för att öva beslut och kommunikation.</li>
       <li>Gå till <b>Jämförelse</b> för att se alla tio scenarier sida vid sida.</li>
+      <li>Under <b>Samhällen</b> anger du förutsättningar per samhälle (invånare, vattenverk, reservoar/vattentorn, reservkraft + bränsletank ”el-tank”). I Simulering visas då påverkan per samhälle i kort <b>3c</b>.</li>
       <li>I <b>Rekommenderade lösningar</b> sätter du intensitet 0–3 per lösning – och kan även <b>ange egna lösningar</b>.</li>
       <li>I kortet <b>”3b · Förväntat resultat av lösning”</b> väljer du en enskild lösning (eller hela mixen) och ser en <b>tabell med förväntat resultat per krisintensitet 1–5</b> – ”utan åtgärd → med lösning” för produktion, personer utan vatten, L/p/d, varaktighet och kostnad.</li>
       <li>Skriv ut eller kopiera <b>övningssammanställningen</b> och koppla den till rätt händelseplan (e1–e8) i <a href="index.html">VA‑Beredskapsappen (index.html)</a>.</li>

@@ -126,10 +126,10 @@ All data lagras endast lokalt i denna webbläsare (localStorage). Spara regelbun
 <script type="application/json" id="app-seed"></script>
 <script>
 "use strict";
-/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.1.html). Bumpa BÅDA vid varje ny version
-   (t.ex. byt till va-simulering-v1.2.html och APP_VERSION = "v1.2") så får varje version en unik URL och
+/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.2.html). Bumpa BÅDA vid varje ny version
+   (nästa: va-simulering-v1.3.html + APP_VERSION = "v1.3") så får varje version en unik URL och
    Chrome kan inte cacha en gammal fil. Sparade HTML-filer får alltid unika namn med klockslag. */
-const APP_VERSION = "v1.1";
+const APP_VERSION = "v1.2";
 /* ============================ SCENARIER ============================ */
 const GRAD_NAMN = ["1 · Lindrig","2 · Måttlig","3 · Allvarlig","4 · Svår","5 · Katastrofal"];
 
@@ -367,7 +367,7 @@ let spelar = null;
 function blank(){
   return {fakta:{befolkning:9061, andelAnslutna:75, normalForbrukning:160, nodMin:3, nodMax:5,
                  antalVerk:8, antalARV:4, avloppM3:6000, avloppAbonnenter:2800},
-          sim:{}, atgard:{}, aktiv:SCENARIOS[0].id,
+          sim:{}, atgard:{}, fokus:{}, egna:{}, aktiv:SCENARIOS[0].id,
           meta:{kommun:"Uppvidinge kommun", uppdaterad:"", version:APP_VERSION}};
 }
 function migrate(d){
@@ -383,6 +383,8 @@ function migrate(d){
       if(o) Object.keys(o).forEach(k=>{ if(o[k]===true) o[k]=3; else if(o[k]===false) o[k]=0; });
     });
   });
+  if(typeof d.fokus!=="object"||!d.fokus) d.fokus = {};
+  if(typeof d.egna!=="object"||!d.egna) d.egna = {};
   if(!SCENARIOS.some(s=>s.id===d.aktiv)) d.aktiv = b.aktiv;
   return d;
 }
@@ -413,8 +415,9 @@ function tidstampel(){
 function aktivScenario(){ return SCENARIOS.find(s=>s.id===db.aktiv) || SCENARIOS[0]; }
 function grad(s){ const g = db.sim[s.id] && db.sim[s.id].grad; return (g>=1&&g<=5)?g:3; }
 function anslutna(){ return Math.round(db.fakta.befolkning * db.fakta.andelAnslutna/100); }
-function berakna(s){
-  const g = grad(s)-1;
+function berakna(s, gOverride){
+  const gg = (gOverride>=1 && gOverride<=5) ? gOverride : grad(s);
+  const g = gg-1;
   const a = anslutna();
   return {prod:s.prod[g], aff:s.aff[g], liter:s.liter[g], dagar:s.dagar[g], kost:s.kost[g],
           utan:Math.round(a*s.aff[g]), a, extra:s.extra.values[g], extraLabel:s.extra.label};
@@ -434,7 +437,7 @@ function literStatus(l){
   return ["kat","Under krisminimum – hälsorisk"];
 }
 /* ============================ Lösningsmix & förväntat resultat ============================ */
-const FASVIKT = {fore:1.0, akut:1.3, ater:0.7};
+const FASVIKT = {fore:1.0, akut:1.3, ater:0.7, egen:1.0};
 const MAX_LINDRING = 0.8;
 function nivaAv(a, fas, i){
   let v = a[fas] ? a[fas][i] : 0;
@@ -442,9 +445,10 @@ function nivaAv(a, fas, i){
   v = parseInt(v,10);
   return (v>=0 && v<=3) ? v : 0;
 }
-function losningsMix(s){
+function losningsMix(s, gOverride, fokus){
   const a = db.atgard[s.id] || {};
-  const b0 = berakna(s);
+  const egna = db.egna[s.id] || [];
+  const b0 = berakna(s, gOverride);
   const f = db.fakta;
   let maxSumma = 0;
   const rad = [];
@@ -453,12 +457,26 @@ function losningsMix(s){
     s.losn[fas].forEach((x,i)=>{
       const lvl = nivaAv(a,fas,i);
       maxSumma += 3*w;
-      rad.push({fas, i, lvl, vikt:w, bidrag:0});
+      rad.push({fas, i, lvl, vikt:w, bidrag:0, text:x});
     });
   });
-  let m = 0;
-  rad.forEach(r=>{ r.bidrag = maxSumma>0 ? MAX_LINDRING*(r.lvl*r.vikt)/maxSumma : 0; m += r.bidrag; });
-  m = Math.min(MAX_LINDRING, m);
+  egna.forEach((e2,i)=>{
+    const w = FASVIKT.egen;
+    const lvl = Math.max(0, Math.min(3, parseInt(e2.niva,10)||0));
+    maxSumma += 3*w;
+    rad.push({fas:"egen", i, lvl, vikt:w, bidrag:0, text:e2.text});
+  });
+  rad.forEach(r=>{ r.bidrag = maxSumma>0 ? MAX_LINDRING*(r.lvl*r.vikt)/maxSumma : 0; });
+  let m;
+  const fk = fokus || "mix";
+  if(fk!=="mix"){
+    const parts = String(fk).split(":");
+    const r = rad.find(r=>r.fas===parts[0] && r.i===parseInt(parts[1],10));
+    if(r){ const lvl = r.lvl>0 ? r.lvl : 3; m = maxSumma>0 ? MAX_LINDRING*(lvl*r.vikt)/maxSumma : 0; }
+    else m = 0;
+  } else {
+    m = Math.min(MAX_LINDRING, rad.reduce((t,r)=>t+r.bidrag,0));
+  }
   const e = {
     prod: Math.min(100, b0.prod + (100-b0.prod)*m),
     utan: Math.round(b0.utan*(1-m)),
@@ -466,22 +484,33 @@ function losningsMix(s){
     dagar: Math.max(1, Math.round(b0.dagar*(1-0.7*m))),
     kost: Math.round(b0.kost*(1-0.5*m)*10)/10
   };
-  return {b0, m, e, rad};
+  return {b0, m, e, rad, fokus: fk};
 }
 function mixHtml(s, mix){
-  if(mix.m<=0){
-    return '<p class="hint" style="margin:10px 0 0">Inga lösningar valda än – gå till fliken ”Rekommenderade lösningar” och sätt intensitet 1–3 per lösning, så visas förväntat resultat här direkt.</p>';
+  const fokus = mix.fokus || "mix";
+  const enskild = fokus!=="mix" ? mix.rad.find(r=>r.fas+":"+r.i===fokus) : null;
+  const vad = enskild ? "enskild lösning (“"+(enskild.text.length>70?enskild.text.slice(0,70)+"…":enskild.text)+"”)" : "hela lösningsmixen (alla valda nivåer)";
+  if(mix.m<=0 && !enskild){
+    return '<p class="hint" style="margin:10px 0 0">Inga lösningar valda än – välj lösningar och intensitet under ”Rekommenderade lösningar”, eller välj/ange en enskild lösning ovan, så visas förväntat resultat per krisintensitet här.</p>';
   }
   const b = mix.b0, e = mix.e;
   const rad = (lbl,a,c,enh)=>`<div class="bar-row"><span class="lbl">${lbl}</span><span style="font-size:.9em">${a} ${enh}</span><span style="color:var(--muted)">→</span><b>${c} ${enh}</b></div>`;
+  const g0 = grad(s);
+  const rows = [1,2,3,4,5].map(g=>{
+    const mx = losningsMix(s, g, fokus);
+    const cur = g===g0 ? ' style="background:#eaf4fa"' : '';
+    return `<tr${cur}><td><b>${g}</b> · ${GRAD_NAMN[g-1].split("·")[1].trim()}${g===g0?" (vald)":""}</td><td>${mx.b0.prod} % → <b>${Math.round(mx.e.prod)} %</b></td><td>${fmt(mx.b0.utan)} → <b>${fmt(mx.e.utan)}</b></td><td>${mx.b0.liter} → <b>${mx.e.liter}</b> L</td><td>${mx.b0.dagar} → <b>${mx.e.dagar}</b> d</td><td>${mx.b0.kost} → <b>${mx.e.kost}</b> Mkr</td></tr>`;
+  }).join("");
   return `
-  <p class="hint" style="margin:10px 0 6px">Sammanlagd förväntad lindring av utfallet: <b>${Math.round(100*mix.m)} %</b> (max ${Math.round(MAX_LINDRING*100)} %). Modell: varje lösning på nivå 1–3 bidrar efter fas (förebyggande ×${FASVIKT.fore}, akut ×${FASVIKT.akut}, återställning ×${FASVIKT.ater}); produktionen återställs mot normal nivå, färre står utan vatten, mer vatten per person, kortare varaktighet och lägre kostnad.</p>
+  <p class="hint" style="margin:10px 0 6px">Utvärderar: <b>${vad}</b>. Förväntad lindring vid vald krisintensitet: <b>${Math.round(100*mix.m)} %</b> (max ${Math.round(MAX_LINDRING*100)} %). Modell: varje lösning på nivå 1–3 bidrar efter fas (förebyggande ×${FASVIKT.fore}, akut ×${FASVIKT.akut}, återställning ×${FASVIKT.ater}, egen ×${FASVIKT.egen}).</p>
   ${rad("Produktion", b.prod+" %", Math.round(e.prod)+" %", "")}
   ${rad("Utan vatten", fmt(b.utan)+" pers", fmt(e.utan)+" pers", "")}
   ${rad("Vatten per person", b.liter+" L", e.liter+" L", "/dygn")}
   ${rad("Varaktighet", b.dagar+" dygn", e.dagar+" dygn", "")}
   ${rad("Kostnad", "ca "+b.kost+" Mkr", "ca "+e.kost+" Mkr", "")}
-  <p style="font-size:.85em;color:var(--muted);margin:8px 0 0">Status med lösningsmixen: produktion – ${prodStatus(e.prod)[1]} · förbrukning – ${literStatus(e.liter)[1]}.</p>`;
+  <h3 style="margin:14px 0 6px">Resultat beroende på krisens intensitet (utan åtgärd → med utvärderad lösning)</h3>
+  <table><tr><th>Krisintensitet</th><th>Produktion</th><th>Utan vatten (pers)</th><th>Vatten L/p/d</th><th>Varaktighet</th><th>Kostnad (Mkr)</th></tr>${rows}</table>
+  <p style="font-size:.85em;color:var(--muted);margin:8px 0 0">Status med lösningen vid vald intensitet ${g0}: produktion – ${prodStatus(e.prod)[1]} · förbrukning – ${literStatus(e.liter)[1]}.</p>`;
 }
 function sattGrad(id, v){
   v = Math.max(1, Math.min(5, parseInt(v,10)||3));
@@ -507,7 +536,8 @@ function renderSim(){
   const ps = prodStatus(b.prod), ls = literStatus(b.liter);
   const orter = s.orter.filter(o=>o.fran<=g);
   const kon = s.konsekv.filter(k=>k.fran<=g);
-  const mix = losningsMix(s);
+  const fokus = db.fokus[s.id] || "mix";
+  const mix = losningsMix(s, null, fokus);
   el("view-simulera").innerHTML = `
   <h2>Simulera ett scenario</h2>
   <p class="hint">Välj scenario, ställ in allvarlighetsgrad och se beräknat utfall för Uppvidinge kommun. Siffrorna bygger på kommunfakta under fliken ”Kommunfakta” och är uppskattningar för övning.</p>
@@ -555,9 +585,10 @@ function renderSim(){
 
   <div class="card">
     <div class="row-flex" style="justify-content:space-between">
-      <h3 style="margin:0">3b · Förväntat resultat med vald lösningsmix</h3>
-      <button class="ghost small no-print" onclick="show('atgard')">Välj intensitet per lösning →</button>
+      <h3 style="margin:0">3b · Förväntat resultat av lösning – per krisintensitet</h3>
+      <button class="ghost small no-print" onclick="show('atgard')">Välj lösningar &amp; intensitet →</button>
     </div>
+    <div class="no-print" style="margin-bottom:8px">${fokusHtml(s)}</div>
     ${mixHtml(s, mix)}
   </div>
 
@@ -602,7 +633,7 @@ function sammanstallningText(s, b, g){
   const orter = s.orter.filter(o=>o.fran<=g).map(o=>o.n);
   const kon = s.konsekv.filter(k=>k.fran<=g).map(k=>k.text);
   const klara = atgardKlara(s);
-  const mix = losningsMix(s);
+  const mix = losningsMix(s, null, db.fokus[s.id]||"mix");
   const lines = [
     "ÖVNINGSSAMMANSTÄLLNING – VA-simulering, " + db.meta.kommun + " (" + APP_VERSION + "),",
     "Scenario: " + s.ikon + " " + s.namn + " – allvarlighetsgrad " + g + "/5 (" + GRAD_NAMN[g-1] + ")",
@@ -622,12 +653,17 @@ function sammanstallningText(s, b, g){
     "REKOMMENDERADE LÖSNINGAR (vald intensitet 0–3, totalt " + klara.poang + "/" + klara.maxPoang + " nivåpoäng):",
     ...losningsRader(s),
     "",
-    "FÖRVÄNTAT RESULTAT MED VALD LÖSNINGSMIX (sammanlagd lindring " + Math.round(100*mix.m) + " %):",
+    "FÖRVÄNTAT RESULTAT VID VALD KRISINTENSITET (utan → med, lindring " + Math.round(100*mix.m) + " %):",
     "- Produktion: " + mix.b0.prod + " % → " + Math.round(mix.e.prod) + " %",
     "- Personer utan vatten: " + fmt(mix.b0.utan) + " → " + fmt(mix.e.utan),
     "- Vatten: " + mix.b0.liter + " → " + mix.e.liter + " L/person/dygn",
     "- Varaktighet: " + mix.b0.dagar + " → " + mix.e.dagar + " dygn",
     "- Kostnad: ca " + mix.b0.kost + " → ca " + mix.e.kost + " Mkr",
+    "",
+    "",
+    "UTVÄRDERAR: " + fokusLabel(s),
+    "RESULTAT PER KRISINTENSITET (utan → med):",
+    ...[1,2,3,4,5].map(g=>{ const mx = losningsMix(s, g, db.fokus[s.id]||"mix"); return "- Grad " + g + ": produktion " + mx.b0.prod + "→" + Math.round(mx.e.prod) + " %, utan vatten " + fmt(mx.b0.utan) + "→" + fmt(mx.e.utan) + " pers, " + mx.b0.liter + "→" + mx.e.liter + " L/p/d, " + mx.b0.dagar + "→" + mx.e.dagar + " dygn, kostnad " + mx.b0.kost + "→" + mx.e.kost + " Mkr"; }),
     "",
     "Kopplat till händelseplan " + s.handel + " i VA‑beredskapsappen (index.html)."
   ];
@@ -646,6 +682,47 @@ function kopieraSammanstallning(){
   const txt = sammanstallningText(s, b, grad(s));
   const done = ()=>{ const b2 = el("sammanstallning"); if(b2){ b2.textContent = txt + "\n\n(Kopierad till urklipp)"; } };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, done); } else { done(); }
+}
+
+/* ============================ Fokus: enskild lösning / egna lösningar ============================ */
+function sattFokus(sid, v){ db.fokus[sid] = v; save(); renderSim(); }
+function fokusLabel(s){
+  const fk = db.fokus[s.id] || "mix";
+  if(fk==="mix") return "hela lösningsmixen";
+  const parts = String(fk).split(":");
+  const mx = losningsMix(s);
+  const r = mx.rad.find(r=>r.fas===parts[0] && r.i===parseInt(parts[1],10));
+  const namn = {fore:"förebyggande", akut:"akut", ater:"återställning", egen:"egen"}[parts[0]] || parts[0];
+  return r ? "enskild lösning (" + namn + "): " + r.text : "okänd lösning";
+}
+function fokusHtml(s){
+  const fk = db.fokus[s.id] || "mix";
+  const ikon = {fore:"🛡️", akut:"🚨", ater:"🔁", egen:"✏️"};
+  const namn = {fore:"förebyggande", akut:"akut", ater:"återställning", egen:"egen"};
+  const opts = ['<option value="mix"'+(fk==="mix"?" selected":"")+'>Hela lösningsmixen (alla valda nivåer)</option>'];
+  ["fore","akut","ater"].forEach(fas=>s.losn[fas].forEach((x,i)=>{
+    const t = x.length>60 ? x.slice(0,60)+"…" : x;
+    opts.push(`<option value="${fas}:${i}"${fk===fas+":"+i?" selected":""}>${ikon[fas]} ${namn[fas]}: ${esc(t)}</option>`);
+  }));
+  (db.egna[s.id]||[]).forEach((e2,i)=>{
+    const t = e2.text.length>60 ? e2.text.slice(0,60)+"…" : e2.text;
+    opts.push(`<option value="egen:${i}"${fk==="egen:"+i?" selected":""}>✏️ egen: ${esc(t)}</option>`);
+  });
+  return `<label>Välj lösning att utvärdera (resultat visas per krisintensitet 1–5):</label><select style="max-width:100%" onchange="sattFokus('${s.id}', this.value)">${opts.join("")}</select>`;
+}
+function laggTillEgen(sid){
+  const inp = el("egen-"+sid);
+  const t = (inp.value||"").trim();
+  if(!t) return;
+  const arr = db.egna[sid] || (db.egna[sid] = []);
+  arr.push({text:t, niva:3});
+  inp.value = "";
+  save(); renderAtgard(); if(nu==="simulera") renderSim();
+}
+function taBortEgen(sid, i){ (db.egna[sid]||[]).splice(i,1); save(); renderAtgard(); if(nu==="simulera") renderSim(); }
+function sattEgenNiva(sid, i, v){
+  const arr = db.egna[sid]||[];
+  if(arr[i]){ arr[i].niva = Math.max(0, Math.min(3, parseInt(v,10)||0)); save(); renderAtgard(); if(nu==="simulera") renderSim(); }
 }
 
 /* ============================ Tidslinje-uppspelning ============================ */
@@ -696,6 +773,7 @@ function atgardKlara(s){
   const a = db.atgard[s.id] || {};
   let tot=0, poang=0;
   ["fore","akut","ater"].forEach(fas=>s.losn[fas].forEach((_,i)=>{ tot++; poang += nivaAv(a,fas,i); }));
+  (db.egna[s.id]||[]).forEach(e2=>{ tot++; poang += Math.max(0, Math.min(3, parseInt(e2.niva,10)||0)); });
   return {tot, poang, maxPoang: tot*3};
 }
 function kryssa(sid, fas, i, v){
@@ -744,6 +822,14 @@ function renderAtgard(){
             <span class="txt">${esc(x)}${rad && rad.bidrag>0 ? ` <span class="chip info">−${Math.round(100*rad.bidrag)} % av utfallet</span>` : ""}</span>
           </div>`; }).join(""); })()}
         </div>`).join("")}
+      <div class="kolumn egen"><h4>✏️ Egna lösningar (ange själv)</h4>
+        <div class="check-item no-print"><input type="text" id="egen-${s.id}" placeholder="Ange en egen lösning…" style="flex:1"><button class="ghost small" onclick="laggTillEgen('${s.id}')">Lägg till</button></div>
+        ${(db.egna[s.id]||[]).map((e2,i)=>`<div class="check-item">
+          <select class="niva" onchange="sattEgenNiva('${s.id}',${i},this.value)">${[0,1,2,3].map(l=>`<option value="${l}"${(e2.niva||0)===l?" selected":""}>${l===0?"0 · Ej vald":l===1?"1 · Låg":l===2?"2 · Medel":"3 · Hög"}</option>`).join("")}</select>
+          <span class="txt">${esc(e2.text)}</span>
+          <button class="ghost small no-print" onclick="taBortEgen('${s.id}',${i})" title="Ta bort">✕</button>
+        </div>`).join("") || '<p class="hint">Inga egna lösningar än.</p>'}
+      </div>
       </div>
     </div>`;
   }).join("")}`;
@@ -826,7 +912,8 @@ function renderOm(){
       <li>Ställ in <b>allvarlighetsgrad 1–5</b> och se direkt beräknat utfall: produktion %, personer utan vatten, liter per person och dygn, varaktighet, kostnad och påverkade orter.</li>
       <li>Spela upp <b>tidslinjen</b> dag för dag – bra underlag för att öva beslut och kommunikation.</li>
       <li>Gå till <b>Jämförelse</b> för att se alla tio scenarier sida vid sida.</li>
-      <li>Sätt <b>intensitet 0–3</b> per rekommenderad lösning i <b>Rekommenderade lösningar</b> – i Simulering visas då <b>förväntat resultat av lösningsmixen</b> (jämförelse utan/med åtgärder) och varje lösnings individuella bidrag.</li>
+      <li>I <b>Rekommenderade lösningar</b> sätter du intensitet 0–3 per lösning – och kan även <b>ange egna lösningar</b>.</li>
+      <li>I kortet <b>”3b · Förväntat resultat av lösning”</b> väljer du en enskild lösning (eller hela mixen) och ser en <b>tabell med förväntat resultat per krisintensitet 1–5</b> – ”utan åtgärd → med lösning” för produktion, personer utan vatten, L/p/d, varaktighet och kostnad.</li>
       <li>Skriv ut eller kopiera <b>övningssammanställningen</b> och koppla den till rätt händelseplan (e1–e8) i <a href="index.html">VA‑Beredskapsappen (index.html)</a>.</li>
     </ol>
   </div>

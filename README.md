@@ -23,20 +23,20 @@ Underlaget bygger på dokumentet *Mall och checklista – VA‑beredskapsplan f�
 - **Spara som HTML‑fil** – laddar ner appen med all data inbakad i en enda fil; öppnas var som helst, helt offline. Bästa sättet att spara och bevara sitt arbete.
 - **Export/import (JSON)** – extra säkerhetskopior och delning.
 
-## VA‑simulering (`va-simulering-v1.1.html`)
+## VA‑simulering (`va-simulering-v1.2.html`)
 
-Kompletterande offline‑app i en enda HTML‑fil: **scenariosimulering för VA i Uppvidinge kommun**. Öppna `va-simulering-v1.1.html` i valfri webbläsare – samma arbetssätt som `index.html` (localStorage, "Spara som HTML‑fil", JSON‑export/import).
+Kompletterande offline‑app i en enda HTML‑fil: **scenariosimulering för VA i Uppvidinge kommun**. Öppna `va-simulering-v1.2.html` i valfri webbläsare – samma arbetssätt som `index.html` (localStorage, "Spara som HTML‑fil", JSON‑export/import).
 
 - **Tio scenarier** som kan drabba VA: extremt snöfall & storm (samhällen utan vatten), cyberattack mot styrsystem (produktion ner till 50 %), förorening av vattentäkt / PFAS över gränsvärde (Åseda 6,3 ng/L, Lenhovda 8,8 ng/L mot 4 ng/L från 2026), torka & lågt grundvatten, stort regionalt elavbrott, skyfall & översvämning (bräddning), stort ledningsbrott, haveri på reningsverk/pumpstation, kemikaliebrist och personalbortfall.
 - **Simulering** – välj scenario och allvarlighetsgrad 1–5; appen beräknar direkt utfall: produktion %, personer utan kommunalt vatten, liter per person och dygn (mot krisminimum 3–5 L), varaktighet, kostnad och påverkade orter (Åseda, Lenhovda, Norrhult‑Klavreström, Alstermo, Älghult m.fl.). Varje scenario kopplas till rätt händelseplan (e1–e8) i `index.html`.
 - **Tidslinje** – händelseförlopp dag för dag, kan spelas upp stegvis (bra i övningar).
 - **Jämförelse** – alla scenarier sida vid sida med staplar.
-- **Rekommenderade lösningar** – per scenario: förebyggande, akut och återställning, med kryssrutor som sparas lokalt (åtgärdslista med progress).
+- **Rekommenderade lösningar** – per scenario: förebyggande, akut och återställning, med **intensitet 0–3 per lösning** som sparas lokalt; du kan även **ange egna lösningar**. I Simulering väljer du en enskild lösning (eller hela mixen) och får en **tabell med förväntat resultat per krisintensitet 1–5** (”utan åtgärd → med lösning”: produktion, personer utan vatten, L/p/d, varaktighet, kostnad).
 - **Kommunfakta Uppvidinge** – redigerbara grundvärden (9 061 invånare, 75 % i tätorter, 8 vattenverk – alla grundvatten, 4 reningsverk + 5 biologiska dammar, >6 000 m³ avlopp/dygn) samt anläggningsregister och källor.
 - **Övningssammanställning** – skriv ut eller kopiera sammanställning av valt scenario + kryssade åtgärder.
 
 Siffrorna är uppskattningar för övning – inte prognoser; verktyget ersätter inte RSA eller händelseplanerna.
-- **Version i filnamnet:** filen heter `va-simulering-v1.1.html` – vid varje ny version byter du namn (t.ex. `va-simulering-v1.2.html`) och bumpar `APP_VERSION` i filen samtidigt, så får varje version en unik URL och Chrome-cache inte strular.
+- **Version i filnamnet:** filen heter `va-simulering-v1.2.html` – vid varje ny version byter du namn (t.ex. `va-simulering-v1.3.html`) och bumpar `APP_VERSION` i filen samtidigt, så får varje version en unik URL och Chrome-cache inte strular.
 
 ## Viktigt om data
 

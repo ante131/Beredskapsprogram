@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>VA‑Simulering – Uppvidinge kommun</title>
 <style>
 :root{
@@ -75,6 +78,7 @@ ul.tight li{margin:4px 0}
 .kolumn.fore h4{color:var(--ok)} .kolumn.akut h4{color:var(--danger)} .kolumn.ater h4{color:var(--brand)}
 .grad-lbl{display:flex;justify-content:space-between;font-size:.8em;color:var(--muted);margin-top:2px}
 .grad-lbl b{color:var(--ink)}
+.niva{width:auto;padding:4px 6px;font-size:.82em;flex:none}
 footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);font-size:.8em}
 @media print{
   header,nav,.no-print{display:none!important}
@@ -89,7 +93,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
 <header>
   <div>
     <h1>VA‑Simulering – Uppvidinge kommun</h1>
-    <div class="sub">Scenariosimulering för vatten &amp; avlopp · välj scenario, ställ in allvarlighet och se utfall, tidslinje och lösningar · offline, data sparas i webbläsaren</div>
+    <div class="sub">Scenariosimulering för vatten &amp; avlopp · välj scenario, ställ in allvarlighet och se utfall, tidslinje och lösningar · offline, data sparas i webbläsaren · <span id="ver"></span></div>
   </div>
   <div class="row-flex no-print">
     <button class="ghost" style="background:#fff;font-weight:600" onclick="sparaApp()">💾 Spara som HTML‑fil (med all data)</button>
@@ -122,6 +126,10 @@ All data lagras endast lokalt i denna webbläsare (localStorage). Spara regelbun
 <script type="application/json" id="app-seed"></script>
 <script>
 "use strict";
+/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.1.html). Bumpa BÅDA vid varje ny version
+   (t.ex. byt till va-simulering-v1.2.html och APP_VERSION = "v1.2") så får varje version en unik URL och
+   Chrome kan inte cacha en gammal fil. Sparade HTML-filer får alltid unika namn med klockslag. */
+const APP_VERSION = "v1.1";
 /* ============================ SCENARIER ============================ */
 const GRAD_NAMN = ["1 · Lindrig","2 · Måttlig","3 · Allvarlig","4 · Svår","5 · Katastrofal"];
 
@@ -360,7 +368,7 @@ function blank(){
   return {fakta:{befolkning:9061, andelAnslutna:75, normalForbrukning:160, nodMin:3, nodMax:5,
                  antalVerk:8, antalARV:4, avloppM3:6000, avloppAbonnenter:2800},
           sim:{}, atgard:{}, aktiv:SCENARIOS[0].id,
-          meta:{kommun:"Uppvidinge kommun", uppdaterad:"", version:"1.0"}};
+          meta:{kommun:"Uppvidinge kommun", uppdaterad:"", version:APP_VERSION}};
 }
 function migrate(d){
   const b = blank();
@@ -369,6 +377,12 @@ function migrate(d){
   d.fakta = Object.assign(b.fakta, d.fakta);
   if(typeof d.sim!=="object"||!d.sim) d.sim = {};
   if(typeof d.atgard!=="object"||!d.atgard) d.atgard = {};
+  Object.keys(d.atgard).forEach(sid=>{
+    ["fore","akut","ater"].forEach(fas=>{
+      const o = d.atgard[sid][fas];
+      if(o) Object.keys(o).forEach(k=>{ if(o[k]===true) o[k]=3; else if(o[k]===false) o[k]=0; });
+    });
+  });
   if(!SCENARIOS.some(s=>s.id===d.aktiv)) d.aktiv = b.aktiv;
   return d;
 }
@@ -419,6 +433,56 @@ function literStatus(l){
   if(l>=f.nodMin) return ["bad","Krisminimum – endast dryck/matlagning"];
   return ["kat","Under krisminimum – hälsorisk"];
 }
+/* ============================ Lösningsmix & förväntat resultat ============================ */
+const FASVIKT = {fore:1.0, akut:1.3, ater:0.7};
+const MAX_LINDRING = 0.8;
+function nivaAv(a, fas, i){
+  let v = a[fas] ? a[fas][i] : 0;
+  if(v === true) v = 3;
+  v = parseInt(v,10);
+  return (v>=0 && v<=3) ? v : 0;
+}
+function losningsMix(s){
+  const a = db.atgard[s.id] || {};
+  const b0 = berakna(s);
+  const f = db.fakta;
+  let maxSumma = 0;
+  const rad = [];
+  ["fore","akut","ater"].forEach(fas=>{
+    const w = FASVIKT[fas];
+    s.losn[fas].forEach((x,i)=>{
+      const lvl = nivaAv(a,fas,i);
+      maxSumma += 3*w;
+      rad.push({fas, i, lvl, vikt:w, bidrag:0});
+    });
+  });
+  let m = 0;
+  rad.forEach(r=>{ r.bidrag = maxSumma>0 ? MAX_LINDRING*(r.lvl*r.vikt)/maxSumma : 0; m += r.bidrag; });
+  m = Math.min(MAX_LINDRING, m);
+  const e = {
+    prod: Math.min(100, b0.prod + (100-b0.prod)*m),
+    utan: Math.round(b0.utan*(1-m)),
+    liter: Math.round(b0.liter + (f.normalForbrukning-b0.liter)*m),
+    dagar: Math.max(1, Math.round(b0.dagar*(1-0.7*m))),
+    kost: Math.round(b0.kost*(1-0.5*m)*10)/10
+  };
+  return {b0, m, e, rad};
+}
+function mixHtml(s, mix){
+  if(mix.m<=0){
+    return '<p class="hint" style="margin:10px 0 0">Inga lösningar valda än – gå till fliken ”Rekommenderade lösningar” och sätt intensitet 1–3 per lösning, så visas förväntat resultat här direkt.</p>';
+  }
+  const b = mix.b0, e = mix.e;
+  const rad = (lbl,a,c,enh)=>`<div class="bar-row"><span class="lbl">${lbl}</span><span style="font-size:.9em">${a} ${enh}</span><span style="color:var(--muted)">→</span><b>${c} ${enh}</b></div>`;
+  return `
+  <p class="hint" style="margin:10px 0 6px">Sammanlagd förväntad lindring av utfallet: <b>${Math.round(100*mix.m)} %</b> (max ${Math.round(MAX_LINDRING*100)} %). Modell: varje lösning på nivå 1–3 bidrar efter fas (förebyggande ×${FASVIKT.fore}, akut ×${FASVIKT.akut}, återställning ×${FASVIKT.ater}); produktionen återställs mot normal nivå, färre står utan vatten, mer vatten per person, kortare varaktighet och lägre kostnad.</p>
+  ${rad("Produktion", b.prod+" %", Math.round(e.prod)+" %", "")}
+  ${rad("Utan vatten", fmt(b.utan)+" pers", fmt(e.utan)+" pers", "")}
+  ${rad("Vatten per person", b.liter+" L", e.liter+" L", "/dygn")}
+  ${rad("Varaktighet", b.dagar+" dygn", e.dagar+" dygn", "")}
+  ${rad("Kostnad", "ca "+b.kost+" Mkr", "ca "+e.kost+" Mkr", "")}
+  <p style="font-size:.85em;color:var(--muted);margin:8px 0 0">Status med lösningsmixen: produktion – ${prodStatus(e.prod)[1]} · förbrukning – ${literStatus(e.liter)[1]}.</p>`;
+}
 function sattGrad(id, v){
   v = Math.max(1, Math.min(5, parseInt(v,10)||3));
   db.sim[id] = {grad:v}; save();
@@ -443,6 +507,7 @@ function renderSim(){
   const ps = prodStatus(b.prod), ls = literStatus(b.liter);
   const orter = s.orter.filter(o=>o.fran<=g);
   const kon = s.konsekv.filter(k=>k.fran<=g);
+  const mix = losningsMix(s);
   el("view-simulera").innerHTML = `
   <h2>Simulera ett scenario</h2>
   <p class="hint">Välj scenario, ställ in allvarlighetsgrad och se beräknat utfall för Uppvidinge kommun. Siffrorna bygger på kommunfakta under fliken ”Kommunfakta” och är uppskattningar för övning.</p>
@@ -490,6 +555,14 @@ function renderSim(){
 
   <div class="card">
     <div class="row-flex" style="justify-content:space-between">
+      <h3 style="margin:0">3b · Förväntat resultat med vald lösningsmix</h3>
+      <button class="ghost small no-print" onclick="show('atgard')">Välj intensitet per lösning →</button>
+    </div>
+    ${mixHtml(s, mix)}
+  </div>
+
+  <div class="card">
+    <div class="row-flex" style="justify-content:space-between">
       <h3 style="margin:0">4 · Händelseförlopp (tidslinje)</h3>
       <div class="no-print">
         <button class="ghost small" id="btn-spela" onclick="spelaUpp()">▶ Spela upp</button>
@@ -529,8 +602,9 @@ function sammanstallningText(s, b, g){
   const orter = s.orter.filter(o=>o.fran<=g).map(o=>o.n);
   const kon = s.konsekv.filter(k=>k.fran<=g).map(k=>k.text);
   const klara = atgardKlara(s);
+  const mix = losningsMix(s);
   const lines = [
-    "ÖVNINGSSAMMANSTÄLLNING – VA-simulering, " + db.meta.kommun,
+    "ÖVNINGSSAMMANSTÄLLNING – VA-simulering, " + db.meta.kommun + " (" + APP_VERSION + "),",
     "Scenario: " + s.ikon + " " + s.namn + " – allvarlighetsgrad " + g + "/5 (" + GRAD_NAMN[g-1] + ")",
     "",
     "BERÄKNAT UTFALL:",
@@ -545,8 +619,15 @@ function sammanstallningText(s, b, g){
     "KONSEKVENSER:",
     ...(kon.length?kon.map(k=>"- "+k):["- Inga särskilda vid denna nivå"]),
     "",
-    "REKOMMENDERADE LÖSNINGAR (kryssade åtgärder: " + klara.done + "/" + klara.tot + "):",
+    "REKOMMENDERADE LÖSNINGAR (vald intensitet 0–3, totalt " + klara.poang + "/" + klara.maxPoang + " nivåpoäng):",
     ...losningsRader(s),
+    "",
+    "FÖRVÄNTAT RESULTAT MED VALD LÖSNINGSMIX (sammanlagd lindring " + Math.round(100*mix.m) + " %):",
+    "- Produktion: " + mix.b0.prod + " % → " + Math.round(mix.e.prod) + " %",
+    "- Personer utan vatten: " + fmt(mix.b0.utan) + " → " + fmt(mix.e.utan),
+    "- Vatten: " + mix.b0.liter + " → " + mix.e.liter + " L/person/dygn",
+    "- Varaktighet: " + mix.b0.dagar + " → " + mix.e.dagar + " dygn",
+    "- Kostnad: ca " + mix.b0.kost + " → ca " + mix.e.kost + " Mkr",
     "",
     "Kopplat till händelseplan " + s.handel + " i VA‑beredskapsappen (index.html)."
   ];
@@ -556,7 +637,7 @@ function losningsRader(s){
   const a = db.atgard[s.id] || {};
   const rader = [];
   [["fore","Förebyggande"],["akut","Akut"],["ater","Återställning"]].forEach(([fas,namn])=>{
-    s.losn[fas].forEach((x,i)=>{ rader.push("[" + ((a[fas]&&a[fas][i])?"x":" ") + "] (" + namn + ") " + x); });
+    s.losn[fas].forEach((x,i)=>{ const lvl = nivaAv(a,fas,i); rader.push("[" + (lvl||" ") + "] (" + namn + ") " + x); });
   });
   return rader;
 }
@@ -613,24 +694,26 @@ function renderJamfor(){
 /* ============================ Åtgärder ============================ */
 function atgardKlara(s){
   const a = db.atgard[s.id] || {};
-  let tot=0, done=0;
-  ["fore","akut","ater"].forEach(fas=>s.losn[fas].forEach((_,i)=>{ tot++; if(a[fas]&&a[fas][i]) done++; }));
-  return {tot, done};
+  let tot=0, poang=0;
+  ["fore","akut","ater"].forEach(fas=>s.losn[fas].forEach((_,i)=>{ tot++; poang += nivaAv(a,fas,i); }));
+  return {tot, poang, maxPoang: tot*3};
 }
 function kryssa(sid, fas, i, v){
   const a = db.atgard[sid] || (db.atgard[sid] = {fore:{}, akut:{}, ater:{}});
-  a[fas][i] = !!v; save(); renderAtgard();
+  a[fas][i] = Math.max(0, Math.min(3, parseInt(v,10)||0));
+  save(); renderAtgard();
+  if(nu==="simulera") renderSim();
 }
 function renderAtgard(){
-  let tot=0, done=0;
-  SCENARIOS.forEach(s=>{ const k = atgardKlara(s); tot+=k.tot; done+=k.done; });
-  const pct = tot? Math.round(100*done/tot):0;
+  let tot=0, poang=0, maxPoang=0;
+  SCENARIOS.forEach(s=>{ const k = atgardKlara(s); tot+=k.tot; poang+=k.poang; maxPoang+=k.maxPoang; });
+  const pct = maxPoang? Math.round(100*poang/maxPoang):0;
   el("view-atgard").innerHTML = `
   <h2>Rekommenderade lösningar – åtgärdslista</h2>
-  <p class="hint">Kryssa de åtgärder som är klara eller planeras för varje scenario. Sparas lokalt – använd t.ex. i övningar eller som underlag till händelseplanerna i index.html.</p>
+  <p class="hint">Sätt <b>intensitet 0–3</b> per lösning (0 = ej vald, 1 = låg, 2 = medel, 3 = hög/genomförd). Sparas lokalt. I fliken Simulering visas då <b>förväntat resultat</b> av hela lösningsmixen (utan/med åtgärder), och varje lösning visar sitt eget bidrag. Använd t.ex. i övningar eller som underlag till händelseplanerna i index.html.</p>
   <div class="card">
     <div class="row-flex" style="justify-content:space-between">
-      <b>Totalt: ${done}/${tot} åtgärder klara (${pct} %)</b>
+      <b>Totalt: ${poang}/${maxPoang} nivåpoäng (${pct} % av full intensitet)</b>
       <button class="ghost small no-print" onclick="window.print()">🖨️ Skriv ut</button>
     </div>
     <div class="progress"><i style="width:${pct}%"></i></div>
@@ -638,19 +721,28 @@ function renderAtgard(){
   ${SCENARIOS.map(s=>{
     const a = db.atgard[s.id] || {};
     const k = atgardKlara(s);
-    const pctS = k.tot? Math.round(100*k.done/k.tot):0;
+    const pctS = k.maxPoang? Math.round(100*k.poang/k.maxPoang):0;
     return `<div class="card">
       <div class="row-flex" style="justify-content:space-between">
         <div><b>${s.ikon} ${esc(s.namn)}</b> <span class="chip info">${esc(s.kat)}</span></div>
-        <span>${k.done}/${k.tot} (${pctS} %)</span>
+        <span>${k.poang}/${k.maxPoang} (${pctS} %)</span>
       </div>
       <div class="progress"><i style="width:${pctS}%"></i></div>
       <div class="grid three">
         ${[["fore","🛡️ Förebyggande"],["akut","🚨 Akut"],["ater","🔁 Återställning"]].map(([fas,namn])=>`
         <div class="kolumn ${fas}"><h4>${namn}</h4>
-          ${s.losn[fas].map((x,i)=>`<div class="check-item">
-            <input type="checkbox" ${a[fas]&&a[fas][i]?"checked":""} onchange="kryssa('${s.id}','${fas}',${i},this.checked)">
-            <span class="txt">${esc(x)}</span></div>`).join("")}
+          ${(()=>{ const mix = losningsMix(s); return s.losn[fas].map((x,i)=>{
+            const rad = mix.rad.find(r=>r.fas===fas && r.i===i);
+            const lvl = nivaAv(a,fas,i);
+            return `<div class="check-item">
+            <select class="niva" onchange="kryssa('${s.id}','${fas}',${i},this.value)" title="Intensitet 0–3">
+              <option value="0"${lvl===0?" selected":""}>0 · Ej vald</option>
+              <option value="1"${lvl===1?" selected":""}>1 · Låg</option>
+              <option value="2"${lvl===2?" selected":""}>2 · Medel</option>
+              <option value="3"${lvl===3?" selected":""}>3 · Hög</option>
+            </select>
+            <span class="txt">${esc(x)}${rad && rad.bidrag>0 ? ` <span class="chip info">−${Math.round(100*rad.bidrag)} % av utfallet</span>` : ""}</span>
+          </div>`; }).join(""); })()}
         </div>`).join("")}
       </div>
     </div>`;
@@ -734,7 +826,7 @@ function renderOm(){
       <li>Ställ in <b>allvarlighetsgrad 1–5</b> och se direkt beräknat utfall: produktion %, personer utan vatten, liter per person och dygn, varaktighet, kostnad och påverkade orter.</li>
       <li>Spela upp <b>tidslinjen</b> dag för dag – bra underlag för att öva beslut och kommunikation.</li>
       <li>Gå till <b>Jämförelse</b> för att se alla tio scenarier sida vid sida.</li>
-      <li>Kryssa rekommenderade lösningar i <b>Rekommenderade lösningar</b> – listan blir ditt åtgärdsunderlag.</li>
+      <li>Sätt <b>intensitet 0–3</b> per rekommenderad lösning i <b>Rekommenderade lösningar</b> – i Simulering visas då <b>förväntat resultat av lösningsmixen</b> (jämförelse utan/med åtgärder) och varje lösnings individuella bidrag.</li>
       <li>Skriv ut eller kopiera <b>övningssammanställningen</b> och koppla den till rätt händelseplan (e1–e8) i <a href="index.html">VA‑Beredskapsappen (index.html)</a>.</li>
     </ol>
   </div>
@@ -752,6 +844,7 @@ function renderOm(){
     <h3 style="margin-top:0">Viktigt</h3>
     <p>Detta är ett <b>övnings- och analysverktyg</b>. Alla utfallssiffror är grova uppskattningar för att öva resonemang – inte prognoser eller beslutsunderlag i en verklig kris. Verktyget ersätter inte risk- och sårbarhetsanalysen (RSA), VA‑beredskapsplanen eller händelseplanerna i <a href="index.html">index.html</a>.</p>
     <p>Appen fungerar helt offline. All data sparas lokalt i webbläsaren (localStorage) – spara regelbundet med ”Spara som HTML‑fil” uppe till höger, eller exportera JSON.</p>
+    <p>Version: <b>${esc(APP_VERSION)}</b>. Varje ny version av filen ska ha ett unikt nummer i <code>APP_VERSION</code> – då syns det direkt i sidhuvudet, webbläsarfliken och här vilken version du har. Filen innehåller också HTTP-meta (<code>no-cache</code>, <code>no-store</code>) som ber Chrome att inte cacha när filen öppnas via en webbserver; ”Spara som HTML‑fil” ger dessutom alltid unika filnamn med datum och klockslag.</p>
   </div>`;
 }
 
@@ -786,7 +879,7 @@ function sparaApp(){
   const blob = new Blob(["<!DOCTYPE html>\n" + klona.outerHTML], {type:"text/html;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "va-simulering-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + tidstampel() + ".html";
+  a.download = "va-simulering-" + APP_VERSION + "-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + tidstampel() + ".html";
   a.click();
   setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); }catch(e){} }, 1000);
 }
@@ -796,6 +889,8 @@ function confirmReset(){
   }
 }
 
+el("ver").textContent = APP_VERSION;
+document.title = document.title + " · " + APP_VERSION;
 show("simulera");
 </script>
 </body>

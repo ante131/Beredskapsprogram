@@ -23,9 +23,9 @@ Underlaget bygger på dokumentet *Mall och checklista – VA‑beredskapsplan f�
 - **Spara som HTML‑fil** – laddar ner appen med all data inbakad i en enda fil; öppnas var som helst, helt offline. Bästa sättet att spara och bevara sitt arbete.
 - **Export/import (JSON)** – extra säkerhetskopior och delning.
 
-## VA‑simulering (`va-simulering.html`)
+## VA‑simulering (`va-simulering-v1.1.html`)
 
-Kompletterande offline‑app i en enda HTML‑fil: **scenariosimulering för VA i Uppvidinge kommun**. Öppna `va-simulering.html` i valfri webbläsare – samma arbetssätt som `index.html` (localStorage, "Spara som HTML‑fil", JSON‑export/import).
+Kompletterande offline‑app i en enda HTML‑fil: **scenariosimulering för VA i Uppvidinge kommun**. Öppna `va-simulering-v1.1.html` i valfri webbläsare – samma arbetssätt som `index.html` (localStorage, "Spara som HTML‑fil", JSON‑export/import).
 
 - **Tio scenarier** som kan drabba VA: extremt snöfall & storm (samhällen utan vatten), cyberattack mot styrsystem (produktion ner till 50 %), förorening av vattentäkt / PFAS över gränsvärde (Åseda 6,3 ng/L, Lenhovda 8,8 ng/L mot 4 ng/L från 2026), torka & lågt grundvatten, stort regionalt elavbrott, skyfall & översvämning (bräddning), stort ledningsbrott, haveri på reningsverk/pumpstation, kemikaliebrist och personalbortfall.
 - **Simulering** – välj scenario och allvarlighetsgrad 1–5; appen beräknar direkt utfall: produktion %, personer utan kommunalt vatten, liter per person och dygn (mot krisminimum 3–5 L), varaktighet, kostnad och påverkade orter (Åseda, Lenhovda, Norrhult‑Klavreström, Alstermo, Älghult m.fl.). Varje scenario kopplas till rätt händelseplan (e1–e8) i `index.html`.
@@ -36,6 +36,7 @@ Kompletterande offline‑app i en enda HTML‑fil: **scenariosimulering för VA 
 - **Övningssammanställning** – skriv ut eller kopiera sammanställning av valt scenario + kryssade åtgärder.
 
 Siffrorna är uppskattningar för övning – inte prognoser; verktyget ersätter inte RSA eller händelseplanerna.
+- **Version i filnamnet:** filen heter `va-simulering-v1.1.html` – vid varje ny version byter du namn (t.ex. `va-simulering-v1.2.html`) och bumpar `APP_VERSION` i filen samtidigt, så får varje version en unik URL och Chrome-cache inte strular.
 
 ## Viktigt om data
 

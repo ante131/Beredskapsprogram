@@ -78,6 +78,7 @@ ul.tight li{margin:4px 0}
 .kolumn.fore h4{color:var(--ok)} .kolumn.akut h4{color:var(--danger)} .kolumn.ater h4{color:var(--brand)}
 .grad-lbl{display:flex;justify-content:space-between;font-size:.8em;color:var(--muted);margin-top:2px}
 .grad-lbl b{color:var(--ink)}
+.empty{color:var(--muted);font-style:italic;padding:10px}
 .niva{width:auto;padding:4px 6px;font-size:.82em;flex:none}
 footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);font-size:.8em}
 @media print{
@@ -109,6 +110,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
   <button data-view="atgard" onclick="show('atgard')">Rekommenderade lösningar</button>
   <button data-view="fakta" onclick="show('fakta')">Kommunfakta Uppvidinge</button>
   <button data-view="samhallen" onclick="show('samhallen')">Samhällen</button>
+  <button data-view="ovningar" onclick="show('ovningar')">Övningar</button>
   <button data-view="om" onclick="show('om')">Om &amp; hjälp</button>
 </nav>
 
@@ -118,6 +120,7 @@ footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);
 <section id="view-atgard" hidden></section>
 <section id="view-fakta" hidden></section>
 <section id="view-samhallen" hidden></section>
+<section id="view-ovningar" hidden></section>
 <section id="view-om" hidden></section>
 </main>
 
@@ -128,10 +131,10 @@ All data lagras endast lokalt i denna webbläsare (localStorage). Spara regelbun
 <script type="application/json" id="app-seed"></script>
 <script>
 "use strict";
-/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.3.html). Bumpa BÅDA vid varje ny version
-   (nästa: va-simulering-v1.4.html + APP_VERSION = "v1.4") så får varje version en unik URL och
+/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.4.html). Bumpa BÅDA vid varje ny version
+   (nästa: va-simulering-v1.5.html + APP_VERSION = "v1.5") så får varje version en unik URL och
    Chrome kan inte cacha en gammal fil. Sparade HTML-filer får alltid unika namn med klockslag. */
-const APP_VERSION = "v1.3";
+const APP_VERSION = "v1.4";
 /* ============================ SCENARIER ============================ */
 const GRAD_NAMN = ["1 · Lindrig","2 · Måttlig","3 · Allvarlig","4 · Svår","5 · Katastrofal"];
 
@@ -360,6 +363,33 @@ const ORTER_TAB = [
  ["Landsbygden (enskilda brunnar)","ca 25 % av befolkningen"]
 ];
 
+/* Livsmedelsverkets publicerade övningsmaterial om VA/dricksvatten (länkar kräver internet) */
+const LVA_OVNINGAR = [
+ {namn:"Digital övningsbank – ”Testa din beredskap – öva inom livsmedelsområdet” (ca 100 scenarier, bl.a. för dricksvattenproducenter och kommuner: elavbrott, vattenbrist, personalplanering, informationssäkerhet)", url:"https://www.livsmedelsverket.se/ova/", not:"Slumpade scenarier med frågor och länkar till stödmaterial."},
+ {namn:"Handbok i krisberedskap och civilt försvar inom dricksvatten (2024) – Bilaga 2: Scenariobank med färdiga krisscenarier (vinterstorm, förorenad täkt, vatten under gränsvärde, större läcka, sabotage, långt strömavbrott m.fl.)", url:"https://www.livsmedelsverket.se/491244/globalassets/publikationsdatabas/handbocker-verktyg/handbok-i-krisberedskap-och-civilt-forsvar-for-dricksvatten/handboken-i-krisberedskap-och-civilt-forsvar-for-dricksvatten_2024.pdf", not:"PDF. Scenariobank framtagen för egna övningar – skalas upp/ned."},
+ {namn:"Handbokens Modul 7 – Utbildning och övning (checklista: planera och genomföra övning, utvärdera efteråt)", url:"https://www.livsmedelsverket.se/globalassets/foretag-regler-kontroll/krisberedskap/krisberedskap-dricksvatten---vaka/modul-7.-utbildning-och-ovning.pdf", not:"PDF – modul 7."},
+ {namn:"Stödmaterial för beredskapsarbete inom dricksvatten (samlingssida, kopplat till handboken)", url:"https://www.livsmedelsverket.se/beredskap/beredskap-inom-dricksvattenforsorjning/stodmaterial-for-beredskapsarbete-inom-dricksvatten", not:"Samlingssida."},
+ {namn:"Scenarier – övningskortlek för livsmedelsföretag (okt 2024, PDF) – bl.a. ”ingen vattenförsörjning via kommunala ledningsnätet under minst en vecka” och ”kraftig översvämning”", url:"https://www.livsmedelsverket.se/4aa00c/globalassets/beredskap/scenarier-ovningskortlek-foretag-oktober-2024.pdf", not:"PDF med övningskort."},
+ {namn:"Stärk ditt företags beredskap genom övning (vägledning: enkla, regelbundna övningar)", url:"https://www.livsmedelsverket.se/beredskap/beredskapsarbete-for-livsmedelsforetag/stark-beredskapen-genom-ovning", not:"Sida."},
+ {namn:"Webbinarier om dricksvattenberedskap (för VA-aktörer: grundvattennivåer, ryktesspridning, ”Öva tillsammans!” m.m.)", url:"https://www.livsmedelsverket.se/om-oss/kurser-och-seminarier/webbinarier-om-dricksvattenberedskap/", not:"Inspelade webbinarier."},
+ {namn:"Nyhet: ”Övning – en viktig del i beredskapsarbetet” (Beredskapsveckan, tema ”Öva!”)", url:"https://www.livsmedelsverket.se/foretagande-regler-kontroll/dricksvattenproduktion/nyheter-for-dricksvattenproducenter/ovning-en-viktig-del-i-beredskapsarbetet", not:"Intervju om scenariobanken och modul 7."}
+];
+/* Koppling: Livsmedelsverkets scenariobank -> våra scenarier */
+const LVA_KOPPLING = [
+ ["Vinterstorm / snöoväder slår ut elen", "sno"],
+ ["Långt strömavbrott (1–2 veckor, hela kommunen strömlös)", "el"],
+ ["Förorening av vattentäkt / råvatten (utsläpp, bräddning, sabotage)", "foror"],
+ ["Dricksvatten under gränsvärde (t.ex. PFAS) – kokvattenrekommendation", "foror"],
+ ["Större vattenläcka / ledningsbrott", "ledning"],
+ ["Sabotage eller IT-angrepp mot VA-anläggning / styrsystem", "cyber"],
+ ["Skyfall / översvämning påverkar VA-anläggningar", "skyfall"],
+ ["Torka / lågt grundvatten", "torka"],
+ ["Brist på kemikalier för rening/desinfektion", "kemikalie"],
+ ["Personalbortfall / bemanningsbrist", "personal"],
+ ["Avloppsstörning / bräddning från reningsverk", "avlopp"],
+ ["Ingen kommunal vattenförsörjning på minst en vecka (övningskortlek)", "el"]
+];
+
 /* Förutsättningar per samhälle – redigeras i fliken Samhällen (db.orter) */
 const ORTER_DEF = [
  {id:"aseda",      namn:"Åseda",                      inv:2740, verk:"Åseda vattenverk",       reservoar:1500, torn:500, reservkraft:1, tank:2000, forbr:6},
@@ -383,7 +413,7 @@ let spelar = null;
 function blank(){
   return {fakta:{befolkning:9061, andelAnslutna:75, normalForbrukning:160, nodMin:3, nodMax:5,
                  antalVerk:8, antalARV:4, avloppM3:6000, avloppAbonnenter:2800},
-          sim:{}, atgard:{}, fokus:{}, egna:{}, orter:ORTER_DEF.map(o=>Object.assign({},o)), aktiv:SCENARIOS[0].id,
+          sim:{}, atgard:{}, fokus:{}, egna:{}, orter:ORTER_DEF.map(o=>Object.assign({},o)), ovningar:[], aktiv:SCENARIOS[0].id,
           meta:{kommun:"Uppvidinge kommun", uppdaterad:"", version:APP_VERSION}};
 }
 function migrate(d){
@@ -402,6 +432,7 @@ function migrate(d){
   if(typeof d.fokus!=="object"||!d.fokus) d.fokus = {};
   if(typeof d.egna!=="object"||!d.egna) d.egna = {};
   if(!Array.isArray(d.orter)) d.orter = ORTER_DEF.map(o=>Object.assign({},o));
+  if(!Array.isArray(d.ovningar)) d.ovningar = [];
   else d.orter = ORTER_DEF.map(def=>Object.assign({}, def, d.orter.find(x=>x.id===def.id)||{}));
   if(!SCENARIOS.some(s=>s.id===d.aktiv)) d.aktiv = b.aktiv;
   return d;
@@ -543,7 +574,7 @@ function show(v){
   nu = v;
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
   document.querySelectorAll("main section").forEach(s=>s.hidden = s.id !== "view-"+v);
-  ({simulera:renderSim, jamfor:renderJamfor, atgard:renderAtgard, fakta:renderFakta, samhallen:renderSamhallen, om:renderOm})[v]();
+  ({simulera:renderSim, jamfor:renderJamfor, atgard:renderAtgard, fakta:renderFakta, samhallen:renderSamhallen, ovningar:renderOvningar, om:renderOm})[v]();
   window.scrollTo(0,0);
 }
 
@@ -685,6 +716,7 @@ function sammanstallningText(s, b, g){
     "- Kostnad: ca " + mix.b0.kost + " → ca " + mix.e.kost + " Mkr",
     "",
     "",
+    "Övningslogg: " + (db.ovningar||[]).length + " övning(ar) loggade (fliken Övningar).",
     "UTVÄRDERAR: " + fokusLabel(s),
     "RESULTAT PER KRISINTENSITET (utan → med):",
     ...[1,2,3,4,5].map(g=>{ const mx = losningsMix(s, g, db.fokus[s.id]||"mix"); return "- Grad " + g + ": produktion " + mx.b0.prod + "→" + Math.round(mx.e.prod) + " %, utan vatten " + fmt(mx.b0.utan) + "→" + fmt(mx.e.utan) + " pers, " + mx.b0.liter + "→" + mx.e.liter + " L/p/d, " + mx.b0.dagar + "→" + mx.e.dagar + " dygn, kostnad " + mx.b0.kost + "→" + mx.e.kost + " Mkr"; }),
@@ -821,6 +853,46 @@ function renderSamhallen(){
    </tr>`).join("")}
   </table></div>`;
 }
+
+/* ============================ Övningar (Livsmedelsverket) & övningslogg ============================ */
+function renderOvningar(){
+  el("view-ovningar").innerHTML = `
+  <h2>Övningar – Livsmedelsverkets material om VA/dricksvatten</h2>
+  <p class="hint">Länkar till övningar och övningsmaterial som Livsmedelsverket publicerat (kräver internet). Längst ner kan du logga egna övningar du gjort med denna simulering – sparas lokalt.</p>
+  <div class="card"><h3 style="margin-top:0">Livsmedelsverkets övningsmaterial</h3>
+    <ul class="tight">${LVA_OVNINGAR.map(o=>`<li><a href="${o.url}" target="_blank" rel="noopener">${esc(o.namn)}</a><br><span style="color:var(--muted);font-size:.88em">${esc(o.not)}</span></li>`).join("")}</ul>
+  </div>
+  <div class="card"><h3 style="margin-top:0">Koppla scenariobank till simuleringen</h3>
+    <p class="hint">Livsmedelsverkets färdiga scenarier (Bilaga 2 i handboken, övningsbanken, övningskortleken) – öppna motsvarande scenario i simuleringen:</p>
+    <table><tr><th>Livsmedelsverkets scenario</th><th class="no-print"></th></tr>
+    ${LVA_KOPPLING.map(([t,sid])=>{ const s = SCENARIOS.find(x=>x.id===sid); return `<tr><td>${esc(t)}</td><td class="no-print"><button class="ghost small" onclick="sattAktiv('${sid}');show('simulera')">${s ? s.ikon+" Öppna: "+esc(s.namn) : sid}</button></td></tr>`; }).join("")}
+    </table>
+  </div>
+  <div class="card"><h3 style="margin-top:0">Övningslogg (sparas lokalt)</h3>
+    <div class="grid two no-print">
+      <div>
+        <label>Datum</label><input type="date" id="ov-datum">
+        <label>Övningens namn</label><input type="text" id="ov-namn" placeholder="t.ex. Snöstorm i Uppvidinge">
+        <label>Simulerat scenario</label><select id="ov-scen">${SCENARIOS.map(s=>`<option value="${s.id}">${esc(s.ikon+" "+s.namn)}</option>`).join("")}</select>
+      </div>
+      <div>
+        <label>Deltagare</label><input type="text" id="ov-deltagare" placeholder="t.ex. krisledning, tekniska avdelningen, räddningstjänst">
+        <label>Lärdomar / åtgärder</label><textarea id="ov-lar" placeholder="Vad lärde vi oss?"></textarea>
+        <button class="primary" onclick="laggOvning()">Logga övning</button>
+      </div>
+    </div>
+    <table><tr><th>Datum</th><th>Övning</th><th>Scenario</th><th>Deltagare</th><th>Lärdomar</th><th class="no-print"></th></tr>
+    ${(db.ovningar||[]).map((o,i)=>{ const s = SCENARIOS.find(x=>x.id===o.scen); return `<tr><td>${esc(o.datum||"")}</td><td>${esc(o.namn||"")}</td><td>${s ? esc(s.ikon+" "+s.namn) : esc(o.scen||"")}</td><td>${esc(o.deltagare||"")}</td><td>${esc(o.lar||"")}</td><td class="no-print"><button class="ghost small" onclick="taBortOvning(${i})" title="Ta bort">✕</button></td></tr>`; }).join("") || '<tr><td colspan="6" class="empty">Inga övningar loggade än.</td></tr>'}
+    </table>
+  </div>`;
+}
+function laggOvning(){
+  const o = {datum: el("ov-datum").value, namn: el("ov-namn").value.trim(), scen: el("ov-scen").value, deltagare: el("ov-deltagare").value.trim(), lar: el("ov-lar").value.trim()};
+  if(!o.namn){ alert("Ange ett namn på övningen."); return; }
+  const arr = db.ovningar || (db.ovningar = []);
+  arr.unshift(o); save(); renderOvningar();
+}
+function taBortOvning(i){ (db.ovningar||[]).splice(i,1); save(); renderOvningar(); }
 
 /* ============================ Tidslinje-uppspelning ============================ */
 function spelaUpp(){
@@ -1010,6 +1082,7 @@ function renderOm(){
       <li>Spela upp <b>tidslinjen</b> dag för dag – bra underlag för att öva beslut och kommunikation.</li>
       <li>Gå till <b>Jämförelse</b> för att se alla tio scenarier sida vid sida.</li>
       <li>Under <b>Samhällen</b> anger du förutsättningar per samhälle (invånare, vattenverk, reservoar/vattentorn, reservkraft + bränsletank ”el-tank”). I Simulering visas då påverkan per samhälle i kort <b>3c</b>.</li>
+      <li>Fliken <b>Övningar</b> samlar Livsmedelsverkets publicerade övningsmaterial (digital övningsbank, handbokens scenariobank, modul 7, övningskortlek m.fl.), kopplar deras scenarier till våra tio – och har en lokal övningslogg.</li>
       <li>I <b>Rekommenderade lösningar</b> sätter du intensitet 0–3 per lösning – och kan även <b>ange egna lösningar</b>.</li>
       <li>I kortet <b>”3b · Förväntat resultat av lösning”</b> väljer du en enskild lösning (eller hela mixen) och ser en <b>tabell med förväntat resultat per krisintensitet 1–5</b> – ”utan åtgärd → med lösning” för produktion, personer utan vatten, L/p/d, varaktighet och kostnad.</li>
       <li>Skriv ut eller kopiera <b>övningssammanställningen</b> och koppla den till rätt händelseplan (e1–e8) i <a href="index.html">VA‑Beredskapsappen (index.html)</a>.</li>

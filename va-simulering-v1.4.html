@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>VA‑Simulering – Uppvidinge kommun</title>
+<style>
+:root{
+  --bg:#f4f6f8; --panel:#fff; --ink:#1c2733; --muted:#5c6b7a;
+  --brand:#0b6e99; --brand-dark:#085473; --line:#d7dee5;
+  --danger:#b3261e; --ok:#1b6e3c; --warn:#c98a00; --chipBg:#e8eef3;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--brand);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+header h1{font-size:1.15em;margin:0;font-weight:600}
+header .sub{font-size:.8em;opacity:.85}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:60px;z-index:19}
+nav button{border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.95em}
+nav button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+main{max-width:1050px;margin:0 auto;padding:20px}
+h2{font-size:1.25em;margin:0 0 4px}
+h3{margin:14px 0 6px}
+.hint{color:var(--muted);font-size:.85em;margin:0 0 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.grid.three{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+label{display:block;font-size:.82em;font-weight:600;margin:10px 0 4px;color:var(--muted)}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--brand)}
+button.primary{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;font:inherit;font-weight:600}
+button.primary:hover{background:var(--brand-dark)}
+button.ghost{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button.small{padding:5px 10px;font-size:.85em}
+table{width:100%;border-collapse:collapse;font-size:.92em}
+th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--chipBg);font-size:.8em;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+.chip{display:inline-block;background:var(--chipBg);border-radius:999px;padding:2px 10px;font-size:.78em;font-weight:600;margin:2px 4px 2px 0}
+.chip.ok{background:#e2f0e6;color:#1b6e3c}
+.chip.warn{background:#f7ecd7;color:#8a6100}
+.chip.bad{background:#f7e9e8;color:#b3261e}
+.chip.kat{background:var(--danger);color:#fff}
+.chip.info{background:#dff0f9;color:#0b6e99}
+.row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stat{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:1.5em;color:var(--brand)}
+.stat span{font-size:.8em;color:var(--muted)}
+.progress{background:#e3e9ee;border-radius:999px;height:12px;overflow:hidden;margin:8px 0}
+.progress i{display:block;height:100%;background:var(--brand);border-radius:999px}
+.scen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.scen-btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;display:flex;gap:8px;align-items:center}
+.scen-btn:hover{border-color:var(--brand)}
+.scen-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.scen-btn .ikon{font-size:1.3em}
+.scen-btn b{font-weight:600;font-size:.92em;display:block}
+.scen-btn small{opacity:.75;font-size:.75em;display:block}
+.bar-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.bar-row .lbl{width:190px;font-size:.85em;color:var(--muted);flex:none}
+.bar{flex:1;background:#e3e9ee;border-radius:6px;height:16px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+.bar-row .val{width:110px;font-size:.85em;font-weight:600;flex:none;text-align:right}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:flex;gap:10px;padding:8px 6px;border-left:3px solid var(--line);margin-left:6px;opacity:.4;transition:opacity .3s}
+.tl li.on{opacity:1;border-left-color:var(--brand);background:#f2f8fb}
+.tl .dag{flex:none;font-weight:700;font-size:.8em;background:var(--chipBg);border-radius:6px;padding:2px 8px;height:fit-content}
+.tl .typ{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.typ.larm{color:var(--danger)} .typ.atgard{color:var(--brand)} .typ.info{color:var(--muted)} .typ.kritisk{color:#7a1010} .typ.ater{color:var(--ok)}
+.check-item{display:flex;gap:10px;align-items:flex-start;padding:7px 4px;border-bottom:1px solid var(--line)}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:18px;height:18px;margin-top:2px;cursor:pointer;flex:none}
+ul.tight{margin:6px 0;padding-left:18px}
+ul.tight li{margin:4px 0}
+.kolumn h4{margin:0 0 6px;font-size:.95em}
+.kolumn.fore h4{color:var(--ok)} .kolumn.akut h4{color:var(--danger)} .kolumn.ater h4{color:var(--brand)}
+.grad-lbl{display:flex;justify-content:space-between;font-size:.8em;color:var(--muted);margin-top:2px}
+.grad-lbl b{color:var(--ink)}
+.empty{color:var(--muted);font-style:italic;padding:10px}
+.niva{width:auto;padding:4px 6px;font-size:.82em;flex:none}
+footer{max-width:1050px;margin:10px auto 30px;padding:0 20px;color:var(--muted);font-size:.8em}
+@media print{
+  header,nav,.no-print{display:none!important}
+  body{background:#fff}
+  .card{border:none;page-break-inside:avoid}
+  main{max-width:none;padding:0}
+  .tl li{opacity:1!important}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>VA‑Simulering – Uppvidinge kommun</h1>
+    <div class="sub">Scenariosimulering för vatten &amp; avlopp · välj scenario, ställ in allvarlighet och se utfall, tidslinje och lösningar · offline, data sparas i webbläsaren · <span id="ver"></span></div>
+  </div>
+  <div class="row-flex no-print">
+    <button class="ghost" style="background:#fff;font-weight:600" onclick="sparaApp()">💾 Spara som HTML‑fil (med all data)</button>
+    <button class="ghost" style="background:#fff" onclick="exportData()">Exportera (JSON)</button>
+    <label class="ghost" style="background:#fff;cursor:pointer">Importera<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+    <button class="ghost" style="background:#fff;color:#b3261e;border-color:#b3261e" onclick="confirmReset()">Rensa allt</button>
+  </div>
+</header>
+
+<nav>
+  <button data-view="simulera" class="active" onclick="show('simulera')">Simulering</button>
+  <button data-view="jamfor" onclick="show('jamfor')">Jämförelse</button>
+  <button data-view="atgard" onclick="show('atgard')">Rekommenderade lösningar</button>
+  <button data-view="fakta" onclick="show('fakta')">Kommunfakta Uppvidinge</button>
+  <button data-view="samhallen" onclick="show('samhallen')">Samhällen</button>
+  <button data-view="ovningar" onclick="show('ovningar')">Övningar</button>
+  <button data-view="om" onclick="show('om')">Om &amp; hjälp</button>
+</nav>
+
+<main>
+<section id="view-simulera"></section>
+<section id="view-jamfor" hidden></section>
+<section id="view-atgard" hidden></section>
+<section id="view-fakta" hidden></section>
+<section id="view-samhallen" hidden></section>
+<section id="view-ovningar" hidden></section>
+<section id="view-om" hidden></section>
+</main>
+
+<footer>
+All data lagras endast lokalt i denna webbläsare (localStorage). Spara regelbundet med ”Spara som HTML‑fil”. Kompletterar <a href="index.html">VA‑Beredskapsplan (index.html)</a> – samma repo. Övningsverktyg: siffrorna är uppskattningar, inte prognoser.
+</footer>
+
+<script type="application/json" id="app-seed"></script>
+<script>
+"use strict";
+/* Versionsnummer – sitter även i FILNAMNET (va-simulering-v1.4.html). Bumpa BÅDA vid varje ny version
+   (nästa: va-simulering-v1.5.html + APP_VERSION = "v1.5") så får varje version en unik URL och
+   Chrome kan inte cacha en gammal fil. Sparade HTML-filer får alltid unika namn med klockslag. */
+const APP_VERSION = "v1.4";
+/* ============================ SCENARIER ============================ */
+const GRAD_NAMN = ["1 · Lindrig","2 · Måttlig","3 · Allvarlig","4 · Svår","5 · Katastrofal"];
+
+const SCENARIOS = [
+{
+ id:"sno", ikon:"❄️", namn:"Extremt snöfall & storm", kat:"Dricksvatten · elberoende", handel:"e1",
+ kort:"Tung snö och stormfällning slår ut elen till vattenverk och pumpstationer – hela samhällen kan stå utan vatten.",
+ beskr:"Vid extremt snöfall med hård vind faller träd över elledningar i skogsbygden. Utan el stannar pumparna i vattenverken och trycket sjunker i högreservoarerna. I Uppvidinge försörjs Älghult och Alsterfors från Alstermo vattenverk och Klavreström från Norrhults vattenverk – långa ledningar över landsbygden gör flera orter sårbara samtidigt. Även hushåll med egen brunn blir utan vatten när pumpen stannar. Reservkraften vid verken är dimensionerad för kortare avbrott, och avstängda vägar gör det svårt att komma åt anläggningarna.",
+ prod:[95,80,60,40,15], aff:[0.05,0.15,0.35,0.60,0.90], liter:[140,90,40,15,3], dagar:[1,2,3,5,10], kost:[0.3,1,4,10,30],
+ extra:{label:"Reservkraft kvar", values:["ca 24 h","ca 12 h","ca 8 h","ca 6 h","förbrukad"], enh:""},
+ orter:[{n:"Landsbygden (enskilda brunnar)",fran:2},{n:"Älghult",fran:2},{n:"Alstermo",fran:3},{n:"Fröseke",fran:3},{n:"Alsterfors",fran:3},{n:"Lindshammar",fran:4},{n:"Marhult",fran:4},{n:"Sävsjöström",fran:4},{n:"Hela kommunen",fran:5}],
+ konsekv:[{fran:3,text:"Äldreboende och vård i Älghult och Åseda måste prioriteras"},{fran:3,text:"Skolor och förskolor i drabbade orter"},{fran:4,text:"Lantbruk och djurhållning behöver vatten till djuren"},{fran:4,text:"Trygghetslarm och hemtjänst påverkas vid elavbrott"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"SMHI-varning och elavbrott rapporteras – reservoarer börjar tömmas"},
+  {dag:1,typ:"atgard",text:"Reservkraft startas på berörda vattenverk; tryckzoner prioriteras"},
+  {dag:1,typ:"info",text:"Information till allmänheten: spara vatten, hämta nödvatten vid utlämningsställe"},
+  {dag:2,typ:"kritisk",text:"Reservoir i drabbad ort tömd – nödvattenutdelning på plats (tankbil/dunkar)"},
+  {dag:3,typ:"atgard",text:"Vägröjning möjliggör tillsyn och bränslepåfyllning av reservkraft"},
+  {dag:5,typ:"ater",text:"El återställd – spolning, provtagning och gradvis återgång till normal drift"}],
+ losn:{
+  fore:["Reservkraft på samtliga 8 vattenverk – testkörs varje månad, bränsle räcker minst 72 h","UPS på styrsystem och larm så verken kan övervakas även vid elavbrott","Avtal om röjning av ledningsgator och prioriterad elåterställning med elnätsägaren","Nödvattenplan med utlämningsställen i varje tätort + avtal om tankbilar","Drivmedelslager och mobila aggregat för viktiga pumpstationer","Öva detta scenario årligen tillsammans med krisledning och räddningstjänst"],
+  akut:["Starta reservkraft; kör verken manuellt vid behov","Prioritera högreservoarer och kritiska abonnenter (vård, skolor, djurhållning)","Dela ut nödvatten (3–5 L/person/dygn) på utlämningsställen; hemleverans till sårbara","Informera via webb, lokalradio P4 Kronoberg och anslag i berörda orter","Begär lägesbildsstöd och resurser via Länsstyrelsen vid regionalt avbrott"],
+  ater:["Spola ledningsnätet och ta godkända prover innan normal drift återupptas","Dokumentera skador, avbrottstid och kostnader (försäkring, eventuellt statligt stöd)","Utvärdera händelsen och uppdatera händelseplan e1 i VA‑beredskapsappen"]}
+},
+{
+ id:"cyber", ikon:"🖥️", namn:"Cyberattack mot styrsystem (SCADA)", kat:"IT/OT · produktion", handel:"e5",
+ kort:"Ransomware eller obehörig åtkomst till produktionsstyrningen kan sänka vattenproduktionen till 50 % eller stänga av verken helt.",
+ beskr:"Vattenverken styrs och övervakas digitalt. Ett angrepp mot styrsystemen kan kryptera filer, ändra kemikaliedosering eller stänga pumpar. Vid en allvarlig attack tvingas produktionen ner – i detta scenario till 50 % av normal kapacitet – samtidigt som fjärrövervakning och larm slås ut. Utan fungerande styrning måste personal åka ut till varje verk, vilket tar lång tid i en glesbygdskommun som Uppvidinge med 8 utspridda vattenverk.",
+ prod:[85,70,50,30,10], aff:[0.10,0.25,0.50,0.75,1.00], liter:[120,80,50,20,5], dagar:[1,2,3,7,14], kost:[1,3,8,20,60],
+ extra:{label:"Fjärrstyrning / övervakning", values:["fungerar","delvis","utslagen","utslagen","utslagen"], enh:""},
+ orter:[{n:"Åseda",fran:2},{n:"Lenhovda",fran:3},{n:"Norrhult-Klavreström",fran:3},{n:"Alstermo",fran:4},{n:"Älghult",fran:4},{n:"Hela kommunen",fran:5}],
+ konsekv:[{fran:3,text:"Produktion nere på 50 % – ransonering och tryckfall i höjdlägen"},{fran:3,text:"Kokvattenrekommendation kan behövas om reningen påverkas"},{fran:4,text:"Industrier (trä, metall, glas) får produktionsstopp"},{fran:4,text:"Fakturering och kundregister kan vara drabbade samtidigt"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Larm om avvikande beteende i styrsystemet – verken kopplas till manuell drift"},
+  {dag:0,typ:"kritisk",text:"IT-incident konstaterad; krisledning aktiveras och MCF (fd MSB/CERT-SE) kontaktas"},
+  {dag:1,typ:"atgard",text:"Produktion sänks kontrollerat till 50 %; reservoarer fylls maximalt"},
+  {dag:2,typ:"info",text:"Allmänheten uppmanas att spara vatten kraftigt"},
+  {dag:3,typ:"atgard",text:"Personal bemannar verken dygnet runt för manuell drift och kontroller"},
+  {dag:7,typ:"ater",text:"System återställda från rena backuper; utökad provtagning innan normal drift"}],
+ losn:{
+  fore:["Segmentera OT-nätet (styrsystem) från kommunens IT-nät – inga direkta bryggor","MFA och unika konton för alla leverantörer; regelbundna behörighetsrevisioner","Offline-backup av styrsystem och recept som inte kan nås från nätet","Dokumenterade manuella driftlägen för varje verk – övas årligen","Säkerhetskrav (NIS2) i alla upphandlingar av VA-utrustning","Övervakning med larm vid avvikande trafik mot VA-systemen"],
+  akut:["Koppla bort drabbade system från nätet; kör verken manuellt","Sänk produktionen kontrollerat och prioritera kritiska abonnenter","Bevara loggar för forensik; rapportera incidenten till MCF","Aktivera nödvattenplanen om produktionen inte räcker","Kontakta kritiska verksamheter direkt via telefonlistan"],
+  ater:["Återställ från verifierade rena backuper; byt alla lösenord och nycklar","Forensisk analys av angreppsvägen innan systemen tas i drift igen","Tätare provtagning och kvalitetskontroll av dricksvattnet","Uppdatera händelseplan e5 och öva scenariot igen"]}
+},
+{
+ id:"foror", ikon:"☣️", namn:"Förorening av vattentäkt / PFAS över gränsvärde", kat:"Dricksvatten · kvalitet", handel:"e2",
+ kort:"Kemikalieutsläpp nära en brunn – eller PFAS över det nya gränsvärdet (Åseda 6,3 ng/L, Lenhovda 8,8 ng/L mot 4 ng/L från 2026) – stänger täkten.",
+ beskr:"Alla 8 vattenverk i Uppvidinge försörjs med grundvatten (jord och berg), så ett utsläpp – t.ex. diesel vid en vägolycka nära ett skyddsområde, eller förorening från lantbruk/industri – kan slå ut en hel täkt. Redan idag ligger PFAS-halterna i Åseda (6,3 ng/L) och Lenhovda (8,8 ng/L) över Livsmedelsverkets nya gränsvärde på 4 ng/L som gäller från 2026; en planerad reningsanläggning ska sänka halterna. Vid akut förorening utfärdas kokvattenrekommendation.",
+ prod:[70,55,40,25,10], aff:[0.20,0.35,0.50,0.70,0.85], liter:[100,60,30,10,4], dagar:[2,3,5,10,21], kost:[2,5,10,25,80],
+ extra:{label:"Täkter i drift", values:["7 av 8","6 av 8","5 av 8","3 av 8","1 av 8"], enh:""},
+ orter:[{n:"Åseda",fran:1},{n:"Lenhovda",fran:2},{n:"Alstermo",fran:3},{n:"Älghult",fran:3},{n:"Norrhult-Klavreström",fran:4},{n:"Hela kommunen",fran:5}],
+ konsekv:[{fran:2,text:"Kokvattenrekommendation i drabbade områden"},{fran:3,text:"Vårdcentral, äldreboenden och skolor behöver säkrat vatten"},{fran:3,text:"Livsmedelsverksamheter får produktionsstopp"},{fran:4,text:"Förtroendekris – tydlig och snabb information är avgörande"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Larm från analys eller räddningstjänsten (utsläpp nära täkt)"},
+  {dag:0,typ:"atgard",text:"Täten stängs av; kokvattenrekommendation utfärdas för berört område"},
+  {dag:1,typ:"atgard",text:"Nödvatten utdelas; alternativa täkter kopplas in där det går"},
+  {dag:2,typ:"info",text:"Provtagning förtätas; information till allmänhet och kritiska abonnenter"},
+  {dag:5,typ:"atgard",text:"Sanering av föroreningen påbörjas"},
+  {dag:14,typ:"ater",text:"Täten återöppnas efter godkända prover; orsaksutredning"}],
+ losn:{
+  fore:["Vattenskyddsområden med föreskrifter runt alla täkter; skyltning och tillsyn","Alternativ försörjning / koppling mellan verk (finns redan: Älghult–Alstermo, Klavreström–Norrhult)","PFAS-rening i Åseda och Lenhovda enligt plan – följ upp att 4 ng/L nås","Larm vid avvikande analysvärden dygnet runt (online-instrument + jour)","Överenskommelse med räddningstjänsten om utsläpp nära skyddsområden","Reservkapacitet i övriga verk vid täktbortfall"],
+  akut:["Stäng den förorenade täkten omedelbart","Utfärda kokvattenrekommendation i samråd med miljöförvaltningen/hälsoskydd","Ordna nödvatten (tankbil, dunkar) till berörda områden","Ta täta prover av råvatten och utgående vatten","Informera tydligt: vad gäller, var hämtas vatten, när kommer nästa besked"],
+  ater:["Sanera föroreningen och dokumentera förloppet","Återöppna täkten först efter godkända provserier","Utred orsak och rikta eventuella ersättningskrav","Uppdatera RSA och händelseplan e2"]}
+},
+{
+ id:"torka", ikon:"🌵", namn:"Torka & lågt grundvatten", kat:"Dricksvatten · långvarig", handel:"e1",
+ kort:"Långvarig torka sänker grundvattennivåerna – i Kronobergs län har nivåerna länge legat under normalt och enskilda brunnar sinar.",
+ beskr:"Grundvattennivåerna i Kronobergs län har under flera år legat under eller mycket under det normala, och kommunen uppmanar redan idag till sparsamhet. Vid en lång torr sommar sjunker nivåerna ytterligare: kommunala brunnar ger mindre vatten och många enskilda brunnar på landsbygden sinar helt. Alla 8 vattenverk i Uppvidinge är beroende av grundvatten – det finns ingen ytvattentäkt att växla till.",
+ prod:[90,75,55,35,15], aff:[0.10,0.25,0.45,0.65,0.85], liter:[130,100,60,25,8], dagar:[7,14,30,60,120], kost:[1,3,8,20,50],
+ extra:{label:"Grundvattennivå vs normalt", values:["något under","under","mycket under","rekordlågt","rekordlågt"], enh:""},
+ orter:[{n:"Landsbygden (enskilda brunnar)",fran:2},{n:"Fröseke",fran:2},{n:"Lindshammar",fran:3},{n:"Marhult",fran:3},{n:"Sävsjöström",fran:3},{n:"Alstermo",fran:4},{n:"Älghult",fran:4},{n:"Norrhult-Klavreström",fran:4},{n:"Åseda",fran:5},{n:"Lenhovda",fran:5}],
+ konsekv:[{fran:2,text:"Enskilda brunnar sinar – nödvatten till hushåll utan fungerande pump"},{fran:3,text:"Bevattningsförbud kan behöva införas"},{fran:4,text:"Lantbruk och djurhållning påverkas kraftigt"},{fran:4,text:"Brandvattenförsörjningen måste säkras"}],
+ tidslinje:[
+  {dag:0,typ:"info",text:"SGU visar låga grundvattennivåer; vattenbesparing uppmanas tidigt"},
+  {dag:7,typ:"atgard",text:"Produktionsbegränsning i utsatta verk; nivåer bevakas dagligen"},
+  {dag:14,typ:"kritisk",text:"Enskilda brunnar börjar sina – nödvatten till drabbade hushåll"},
+  {dag:30,typ:"atgard",text:"Tankbilar och reservbrunnar sätts in; bevattningsförbud övervägs"},
+  {dag:60,typ:"atgard",text:"Långsiktiga åtgärder påbörjas: nya brunnar, överföringsledningar"},
+  {dag:90,typ:"ater",text:"Nederbörden normaliserar nivåerna – restriktioner hävs gradvis"}],
+ losn:{
+  fore:["Bevaka grundvattennivåer (SGU) kontinuerligt och sätt larmnivåer per täkt","Reservbrunnar och möjlighet att koppla över vatten mellan verk","Kommunicera vattenbesparing tidigt – innan krisen är ett faktum","Långsiktig kapacitetsplan: nya täkter och överföring till Åseda vattenverk","Samverkan med grannkommuner (Växjö, Lessebo, Nybro, Högsby, Vetlanda, Hultsfred) om reservvatten"],
+  akut:["Sänk produktionen kontrollerat i utsatta verk; skydda nivåerna i brunnarna","Nödvatten till hushåll med sinande brunnar","Inför bevattningsförbud vid behov och följ upp efterlevnad","Prioritera vård, omsorg och djurhållning"],
+  ater:["Återställ successivt när nivåerna återhämtar sig","Utvärdera vilka täkter som var sårbarast; planera nya brunnar","Uppdatera vattenförsörjningsplanen med låggrundvattenscenario"]}
+},
+{
+ id:"el", ikon:"⚡", namn:"Stort regionalt elavbrott", kat:"El · hela VA-systemet", handel:"e1",
+ kort:"Elavbrott över hela eller stora delar av kommunen i mer än 24 timmar – pumpar, reningsverk och kommunikation stannar.",
+ beskr:"VA är helt beroende av el: pumpar i brunnar och pumpstationer, rening i vattenverken och de 4 reningsverken, styrsystem och larm. Vid ett regionalt elavbrott över 24 timmar töms reservoarerna, trycket faller och reningsverken riskerar att brädda orenat avlopp. Även mobilnäten försämras, vilket gör larm och information till allmänheten svårare.",
+ prod:[60,40,20,5,0], aff:[0.30,0.60,0.85,1.00,1.00], liter:[80,40,15,5,3], dagar:[1,2,3,5,10], kost:[2,6,15,40,100],
+ extra:{label:"Avloppsbräddning", values:["ingen","risk","ja, begränsad","ja, omfattande","ja, okontrollerad"], enh:""},
+ orter:[{n:"Åseda",fran:1},{n:"Lenhovda",fran:1},{n:"Hela kommunen",fran:2}],
+ konsekv:[{fran:2,text:"Alla 4 reningsverk riskerar bräddning – miljöpåverkan på Alsterån och Norrsjön"},{fran:2,text:"Vård och omsorg, trygghetslarm och butiker påverkas"},{fran:3,text:"Dricksvattenbrist i hela kommunen"},{fran:4,text:"Långvarigt avbrott: avloppssystemet måste spolas rent noggrant efteråt"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Regionalt elavbrott – alla verk och reningsverk går på reservkraft"},
+  {dag:0,typ:"atgard",text:"Krisledning aktiveras; prioriteringslista (vård, VA) lämnas till elnätsägaren"},
+  {dag:1,typ:"kritisk",text:"Reservoarer töms i delar av kommunen – nödvattenutdelning startar"},
+  {dag:2,typ:"atgard",text:"Bränsle till reservkraft ordnas; mobila aggregat till prioriterade pumpstationer"},
+  {dag:3,typ:"info",text:"Information via lokalradio (P4 Kronoberg) och utskick – mobiltäckning delvis nere"},
+  {dag:5,typ:"ater",text:"El återställd – kontroll, spolning och provtagning innan normal drift"}],
+ losn:{
+  fore:["Reservkraft på alla vattenverk, reningsverk och stora pumpstationer + bränsle för minst 72 h","Avtal om mobila elaggregat och prioriterad återställning med elnätsägaren","Fastställd prioriteringslista över kritiska abonnenter (vård, omsorg, livsmedel, djurhållning)","UPS för styrsystem, larm och kommunikation","Öva elavbrott över 24 h årligen med krisledning, räddningstjänst och elnätsägare"],
+  akut:["Starta reservkraft; kör reningsverken så länge som möjligt för att undvika bräddning","Dela ut nödvatten; prioritera kritiska abonnenter","Begränsa avloppsflödet (information: spola sparsamt) för att minska bräddning","Håll lägesbild till Länsstyrelsen; begär extra resurser vid behov"],
+  ater:["Spola vatten- och avloppsledningar; ta prover innan normal drift","Dokumentera eventuell bräddning (volym, plats, tid) – miljöanmälan till tillsynsmyndighet","Utvärdera bränsleåtgång och reservkraftstid; fyll på lager"]}
+},
+{
+ id:"skyfall", ikon:"🌧️", namn:"Skyfall & översvämning", kat:"Avlopp · dagvatten · miljö", handel:"e7",
+ kort:"Extremt regn överbelastar avloppssystemet – låglänta pumpstationer och reningsverk översvämmas och orenat avlopp bräddar ut.",
+ beskr:"Vid skyfall hinner inte ledningsnätet och reningsverken med. Dagvatten som tränger in i spillvattennätet ökar flödet kraftigt. Låglänta pumpstationer vid t.ex. Alsterån och Norrsjön samt reningsverken i Åseda, Alstermo, Lenhovda och Norrhult kan översvämmas, med elhaveri och bräddning av orenat avlopp som följd. Översvämning kan också förorena brunnar och källare.",
+ prod:[100,90,75,50,30], aff:[0.05,0.15,0.30,0.50,0.70], liter:[150,120,90,40,15], dagar:[1,2,3,5,8], kost:[1,3,8,20,50],
+ extra:{label:"Bräddad orenad volym", values:["< 500 m³","500–2 000 m³","2 000–6 000 m³","6 000–15 000 m³","> 15 000 m³"], enh:""},
+ orter:[{n:"Åseda",fran:2},{n:"Alstermo",fran:2},{n:"Lenhovda",fran:3},{n:"Norrhult-Klavreström",fran:3},{n:"Låglänta områden vid Alsterån/Norrsjön",fran:4},{n:"Hela kommunen",fran:5}],
+ konsekv:[{fran:2,text:"Bräddning av orenat avlopp till recipient – miljöbrott och badförbud"},{fran:2,text:"Källare och låglänta fastigheter översvämmas"},{fran:3,text:"Elhaveri i pumpstationer kan ge tryckfall i dricksvattnet"},{fran:4,text:"Enskilda brunnar kan förorenas av översvämmat vatten"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Skyfallsvarning; pumpstationer i låglänta lägen förbereds"},
+  {dag:0,typ:"atgard",text:"Bräddningsvägar öppnas kontrollerat; personal bemannar reningsverken"},
+  {dag:1,typ:"kritisk",text:"Pumpstation översvämmad / elhaveri – bräddning av orenat avlopp"},
+  {dag:1,typ:"info",text:"Varning: undvik kontakt med översvämmat vatten; badförbud vid berörd recipient"},
+  {dag:3,typ:"atgard",text:"Pumpning med mobila pumpar; slamsugning av översvämmade källare"},
+  {dag:5,typ:"ater",text:"System tömt och rengjort; miljöprover i recipienten tas"}],
+ losn:{
+  fore:["Klimatanpassa: fördröjningsmagasin och separering av dagvatten från spillvattennätet","Höj trösklar, backventiler och elskåp på låglänta pumpstationer och reningsverk","Översvämningskartering av kommunen – identifiera sårbara anläggningar","Underhåll av bräddningsvägar; spolning av ledningar före vår och höst","Avtal om mobila pumpar och slamsugning"],
+  akut:["Öppna bräddningsvägar kontrollerat; dokumentera volym och tidpunkt","Stäng av el i översvämmade anläggningar; pumpa med mobila pumpar","Varna allmänheten – undvik översvämmat vatten och berörda badplatser","Anmäl bräddning till miljöförvaltningen"],
+  ater:["Rengör och desinfektera översvämmade utrymmen och anläggningar","Miljöprover i recipient (Alsterån, Norrsjön, Änghultasjön m.fl.) tills nivåer normaliseras","Dokumentera skador för försäkring; utvärdera och klimatanpassa ytterligare"]}
+},
+{
+ id:"ledning", ikon:"🔧", namn:"Stort ledningsbrott i huvudledning", kat:"Dricksvatten · distribution", handel:"e3",
+ kort:"En huvudledning brister – stora områden får tryckfall eller inget vatten, och inläckage kan kräva kokvatten.",
+ beskr:"Ett stort ledningsbrott, t.ex. på huvudledningen från Åseda vattenverk eller i centrala Åseda, tömmer snabbt trycket i stora zoner. Vid tryckfall finns risk att förorenat vatten sugs in i ledningen, vilket kan kräva kokvattenrekommendation. Gator översvämmas och trafiken störs. I Uppvidinge är avstånden långa och reparation kan ta tid, särskilt vintertid.",
+ prod:[80,60,40,20,5], aff:[0.15,0.35,0.60,0.85,1.00], liter:[100,60,25,10,4], dagar:[1,2,3,5,8], kost:[1,3,7,15,35],
+ extra:{label:"Tryck i drabbad zon", values:["normalt","sänkt","mycket lågt","nära noll","avstängt"], enh:""},
+ orter:[{n:"Åseda",fran:1},{n:"Lenhovda",fran:3},{n:"Norrhult-Klavreström",fran:4},{n:"Alstermo",fran:4},{n:"Älghult",fran:5},{n:"Hela kommunen",fran:5}],
+ konsekv:[{fran:2,text:"Kokvattenrekommendation vid risk för inläckage i ledningen"},{fran:2,text:"Vårdcentral och äldreboenden prioriteras"},{fran:3,text:"Butiker och livsmedelsverksamheter stänger eller begränsas"},{fran:4,text:"Brandvattenförsörjningen påverkas – räddningstjänsten informeras"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Larm: tryckfall och stort flöde – ledningsbrott misstänkt"},
+  {dag:0,typ:"atgard",text:"Sektionsventiler stängs; drabbad zon kopplas bort"},
+  {dag:1,typ:"info",text:"Kokvattenrekommendation utfärdas för zonen tills prover är godkända"},
+  {dag:1,typ:"atgard",text:"Nödvattenutdelning i berörda områden"},
+  {dag:3,typ:"atgard",text:"Reparation pågår; schaktning vintertid försvårar arbetet"},
+  {dag:5,typ:"ater",text:"Ledning lagad – spolning, desinfektion, prover, sedan gradvis återgång"}],
+ losn:{
+  fore:["Förnya ledningar i dåligt skick – prioritera efter läcksökning och ålder","Sektionsventiler och tryckövervakning med larm vid avvikelse","Regelbunden läcksökning – långa landsbygdsledningar är svåra att övervaka","Reservledningar / nödvattenförbindelser mellan orter där det är möjligt","Jour dygnet runt med beredskap för vinterförhållanden"],
+  akut:["Lokalisera och stäng av brottet med sektionsventiler","Utfärda kokvatten vid behov; dela ut nödvatten","Reparera – vid stort brott in med extern entreprenör","Informera berörda områden tydligt och ofta"],
+  ater:["Spola rent, desinfektera och ta godkända prover innan återgång","Dokumentera skador och kostnader; kontakta försäkringsbolag","Uppdatera ledningskartor och händelseplan e3"]}
+},
+{
+ id:"avlopp", ikon:"🚰", namn:"Haveri på reningsverk / pumpstation (avloppsstopp)", kat:"Avlopp · miljö", handel:"e7",
+ kort:"Strömavbrott eller mekaniskt haveri på ett av de 4 reningsverken – orenat avlopp bräddar ut i recipienten.",
+ beskr:"Uppvidinge har fyra kompletta reningsverk (Åseda, Alstermo, Lenhovda, Norrhult) plus fem biologiska dammar och behandlar drygt 6 000 m³ avloppsvatten per dygn. Vid haveri – strömavbrott utan reservkraft, pumpstopp eller mekaniskt fel – bräddar orenat avlopp ut. Det är ett miljöbrott med lukt och smittrisk som kräver miljöanmälan. Dricksvattnet påverkas normalt inte direkt.",
+ prod:[100,100,90,80,70], aff:[0,0,0.05,0.10,0.20], liter:[160,160,150,120,80], dagar:[1,2,4,7,14], kost:[0.5,2,5,10,25],
+ extra:{label:"Bräddning av orenat avlopp", values:["ingen","risk","begränsad","omfattande","omfattande + lukt"], enh:""},
+ orter:[{n:"Åseda",fran:2},{n:"Alstermo",fran:2},{n:"Lenhovda",fran:3},{n:"Norrhult-Klavreström",fran:3},{n:"Biologiska dammar (Alsterfors, Fröseke, Lindshammar, Marhult m.fl.)",fran:4}],
+ konsekv:[{fran:2,text:"Bräddning av orenat avlopp – miljökrav och badförbud i recipient"},{fran:2,text:"Luktstörningar i tätorten"},{fran:3,text:"Slamhanteringen stannar – lagringskapacitet behövs"},{fran:4,text:"Långt avbrott kan påverka dricksvattnet indirekt (el, personal)"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Larm från reningsverket – pumpar eller rening ur funktion"},
+  {dag:0,typ:"atgard",text:"Reservkraft startas; bräddning sker kontrollerat till bassäng/recipient"},
+  {dag:1,typ:"info",text:"Allmänheten uppmanas spola sparsamt för att minska inflödet"},
+  {dag:2,typ:"atgard",text:"Reparation med extern entreprenör; slam körs till tankbil eller annat verk"},
+  {dag:4,typ:"atgard",text:"Miljöanmälan görs; prover i recipienten tas"},
+  {dag:7,typ:"ater",text:"Verket i drift igen – rengöring, desinfektion och funktionskontroll"}],
+ losn:{
+  fore:["Reservkraft på alla 4 reningsverk och stora pumpstationer – testkörs regelbundet","Bräddningsbassänger / kapacitet att hantera toppflöde utan orenad bräddning","Övervakning med larm dygnet runt på reningsverk och pumpstationer","Lager av reservdelar och kemikalier; jouravtal med entreprenör","Slamhanteringsplan med alternativ mottagare vid stopp"],
+  akut:["Starta reservkraft; kör reningsstegen manuellt vid behov","Brädda kontrollerat och dokumentera volym/tid; anmäl till miljöförvaltningen","Be allmänheten minska vattenanvändningen (spola sparsamt)","Kör slam till tankbil eller annat verk"],
+  ater:["Rengör och desinfektera anläggningen; kontrollera reningsresultatet","Prover i recipienten tills nivåerna är normala","Utred orsaken; uppdatera händelseplan e7 och öva igen"]}
+},
+{
+ id:"kemikalie", ikon:"🧪", namn:"Kemikaliebrist i beredningen", kat:"Dricksvatten · försörjning", handel:"e4",
+ kort:"Leveransstopp av fällningskemikalier eller desinfektionsmedel – produktionen måste dras ner eller kokvatten utfärdas.",
+ beskr:"Vattenverken behöver kemikalier för rening och desinfektion. Vid leveransstopp (leverantörsproblem, transportstörningar, internationell brist) sjunker kapacitet eller kvalitet. I värsta fall kan vattnet inte desinfekeras tillräckligt och kokvattenrekommendation utfärdas. Uppvidinge har små volymer – ett litet lager tar snabbt slut.",
+ prod:[90,75,55,35,15], aff:[0.10,0.25,0.50,0.70,0.90], liter:[130,90,50,20,6], dagar:[3,7,14,30,60], kost:[1,3,8,20,45],
+ extra:{label:"Kemikalielager kvar", values:["3–6 mån","1–3 mån","< 1 mån","tomt","tomt"], enh:""},
+ orter:[{n:"Alla verk med kemisk rening",fran:2},{n:"Åseda",fran:3},{n:"Lenhovda",fran:3},{n:"Hela kommunen",fran:4}],
+ konsekv:[{fran:3,text:"Kokvattenrekommendation om desinfektion inte kan garanteras"},{fran:3,text:"Industrier och livsmedelsverksamheter påverkas"},{fran:4,text:"Långvarig brist kräver nödvattenförsörjning"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Leverantören meddelar stopp – lagernivåer inventeras samma dag"},
+  {dag:3,typ:"atgard",text:"Dosering optimeras; produktion sänks kontrollerat"},
+  {dag:7,typ:"info",text:"Vid behov: kokvattenrekommendation i berörda områden"},
+  {dag:14,typ:"atgard",text:"Alternativa kemikalier/leverantörer aktiveras; lån från grannkommun"},
+  {dag:30,typ:"ater",text:"Normal leverans återupptagen – lagret byggs upp igen"}],
+ losn:{
+  fore:["Lager för minst 3–6 månaders förbrukning av kritiska kemikalier","Minst två leverantörer och alternativa kemikalier förgodkända i förväg","Avtal med grannkommuner (Växjö, Lessebo, Nybro, Högsby, Vetlanda, Hultsfred) om utlåning","Regelbunden doseringsoptimering så mindre kemikalie går åt","Nödprocedur för kokvatten om desinfektion inte kan garanteras"],
+  akut:["Ransonera kemikalier; justera dos efter täta vattenprover","Kontakta alternativa leverantörer och grannkommuner","Utfärda kokvatten vid behov; dela ut nödvatten om produktionen inte räcker"],
+  ater:["Bygg upp lagret igen; se över leverantörsavtalen","Utvärdera hur länge vi hade klarat oss; uppdatera händelseplan e4"]}
+},
+{
+ id:"personal", ikon:"🧑‍🤝‍🧑", namn:"Personalbortfall i VA-organisationen", kat:"Organisation · bemanning", handel:"e6",
+ kort:"Pandemi eller höjd beredskap – nyckelpersonal är borta och den lilla VA-enheten får svårt att bemanna drift och jour.",
+ beskr:"VA-driften i Uppvidinge sköts av tekniska avdelningen med få medarbetare. Vid pandemi, krigsplacering eller massjukskrivning kan flera nyckelpersoner falla bort samtidigt. Då blir det svårt att sköta 8 vattenverk, 4 reningsverk, pumpstationer och jour dygnet runt – även om själva anläggningarna fungerar.",
+ prod:[95,85,70,50,30], aff:[0.05,0.15,0.35,0.60,0.85], liter:[150,120,80,40,15], dagar:[3,7,14,30,60], kost:[0.5,2,6,15,40],
+ extra:{label:"Tillgänglig VA-personal", values:["normal","nedsatt","halverad","kritisk","krisbemanning"], enh:""},
+ orter:[{n:"Alla anläggningar",fran:2},{n:"Mindre verk (Fröseke, Lindshammar, Marhult, Sävsjöström)",fran:3},{n:"Hela kommunen",fran:5}],
+ konsekv:[{fran:3,text:"Försenade prover och kontroller – vattenkvaliteten blir osäker"},{fran:3,text:"Jour och läckor hinner inte åtgärdas i tid"},{fran:4,text:"Kritiska abonnenter kan behöva stängas av tillfälligt"}],
+ tidslinje:[
+  {dag:0,typ:"larm",text:"Flera medarbetare sjukanmälda – bemanningen inventeras"},
+  {dag:1,typ:"atgard",text:"Jouravtal med entreprenör och grannkommun aktiveras"},
+  {dag:3,typ:"atgard",text:"Endast kritiska uppgifter prioriteras: drift, larmhantering, prover"},
+  {dag:7,typ:"info",text:"Information: vissa planerade arbeten skjuts upp"},
+  {dag:14,typ:"ater",text:"Personal åter – översyn av eftersatta kontroller och underhåll"}],
+ losn:{
+  fore:["Korsutbildning – minst två personer behärskar varje kritisk uppgift","Dokumenterade driftinstruktioner (SOP) för alla 8 vattenverk och 4 reningsverk","Jour- och bemanningsavtal med entreprenörer och grannkommuner","Vikarielista och tydlig delegering vid frånvaro","Distansövervakning som avlastar behovet av personal på plats"],
+  akut:["Aktivera avtal med entreprenör/grannkommun direkt","Prioritera: dricksvattenproduktion, larmhantering, reningsverken","Förenkla rutiner tillfälligt – dokumentera avvikelser","Skydda personalen (smittskydd) så verksamheten kan fortsätta"],
+  ater:["Gå igenom eftersatta prover, kontroller och underhåll","Utvärdera bemanningsbehovet; uppdatera händelseplan e6"]}
+}
+];
+
+/* ============================ ANLÄGGNINGSDATA ============================ */
+const VERK = [
+ ["Åseda vattenverk","Åseda","Största verket – försörjer ca 2 460 personer","Grundvatten (jord/berg)"],
+ ["Alstermo vattenverk","Alstermo","Försörjer även Älghult och Alsterfors","Grundvatten"],
+ ["Norrhults vattenverk","Norrhult","Försörjer även Klavreström","Grundvatten"],
+ ["Lenhovda vattenverk","Lenhovda","","Grundvatten"],
+ ["Fröseke vattenverk","Fröseke","","Grundvatten"],
+ ["Lindshammar vattenverk","Lindshammar","","Grundvatten"],
+ ["Marhult vattenverk","Marhult","","Grundvatten"],
+ ["Sävsjöströms vattenverk","Sävsjöström","","Grundvatten"]
+];
+const ARV = [
+ ["Åseda avloppsreningsverk","Mekanisk, biologisk och kemisk rening"],
+ ["Alstermo avloppsreningsverk","Mekanisk, biologisk och kemisk rening"],
+ ["Lenhovda avloppsreningsverk","Mekanisk, biologisk och kemisk rening"],
+ ["Norrhults avloppsreningsverk","Mekanisk, biologisk och kemisk rening"],
+ ["5 biologiska dammar","Alsterfors, Fröseke, Lindshammar, Marhult m.fl."]
+];
+const ORTER_TAB = [
+ ["Åseda (centralort)","ca 2 740"],["Lenhovda","ca 1 770"],["Norrhult-Klavreström","ca 1 215"],
+ ["Alstermo","ca 875"],["Älghult","ca 460"],["Fröseke m.fl. mindre orter","ca 200–300 vardera"],
+ ["Landsbygden (enskilda brunnar)","ca 25 % av befolkningen"]
+];
+
+/* Livsmedelsverkets publicerade övningsmaterial om VA/dricksvatten (länkar kräver internet) */
+const LVA_OVNINGAR = [
+ {namn:"Digital övningsbank – ”Testa din beredskap – öva inom livsmedelsområdet” (ca 100 scenarier, bl.a. för dricksvattenproducenter och kommuner: elavbrott, vattenbrist, personalplanering, informationssäkerhet)", url:"https://www.livsmedelsverket.se/ova/", not:"Slumpade scenarier med frågor och länkar till stödmaterial."},
+ {namn:"Handbok i krisberedskap och civilt försvar inom dricksvatten (2024) – Bilaga 2: Scenariobank med färdiga krisscenarier (vinterstorm, förorenad täkt, vatten under gränsvärde, större läcka, sabotage, långt strömavbrott m.fl.)", url:"https://www.livsmedelsverket.se/491244/globalassets/publikationsdatabas/handbocker-verktyg/handbok-i-krisberedskap-och-civilt-forsvar-for-dricksvatten/handboken-i-krisberedskap-och-civilt-forsvar-for-dricksvatten_2024.pdf", not:"PDF. Scenariobank framtagen för egna övningar – skalas upp/ned."},
+ {namn:"Handbokens Modul 7 – Utbildning och övning (checklista: planera och genomföra övning, utvärdera efteråt)", url:"https://www.livsmedelsverket.se/globalassets/foretag-regler-kontroll/krisberedskap/krisberedskap-dricksvatten---vaka/modul-7.-utbildning-och-ovning.pdf", not:"PDF – modul 7."},
+ {namn:"Stödmaterial för beredskapsarbete inom dricksvatten (samlingssida, kopplat till handboken)", url:"https://www.livsmedelsverket.se/beredskap/beredskap-inom-dricksvattenforsorjning/stodmaterial-for-beredskapsarbete-inom-dricksvatten", not:"Samlingssida."},
+ {namn:"Scenarier – övningskortlek för livsmedelsföretag (okt 2024, PDF) – bl.a. ”ingen vattenförsörjning via kommunala ledningsnätet under minst en vecka” och ”kraftig översvämning”", url:"https://www.livsmedelsverket.se/4aa00c/globalassets/beredskap/scenarier-ovningskortlek-foretag-oktober-2024.pdf", not:"PDF med övningskort."},
+ {namn:"Stärk ditt företags beredskap genom övning (vägledning: enkla, regelbundna övningar)", url:"https://www.livsmedelsverket.se/beredskap/beredskapsarbete-for-livsmedelsforetag/stark-beredskapen-genom-ovning", not:"Sida."},
+ {namn:"Webbinarier om dricksvattenberedskap (för VA-aktörer: grundvattennivåer, ryktesspridning, ”Öva tillsammans!” m.m.)", url:"https://www.livsmedelsverket.se/om-oss/kurser-och-seminarier/webbinarier-om-dricksvattenberedskap/", not:"Inspelade webbinarier."},
+ {namn:"Nyhet: ”Övning – en viktig del i beredskapsarbetet” (Beredskapsveckan, tema ”Öva!”)", url:"https://www.livsmedelsverket.se/foretagande-regler-kontroll/dricksvattenproduktion/nyheter-for-dricksvattenproducenter/ovning-en-viktig-del-i-beredskapsarbetet", not:"Intervju om scenariobanken och modul 7."}
+];
+/* Koppling: Livsmedelsverkets scenariobank -> våra scenarier */
+const LVA_KOPPLING = [
+ ["Vinterstorm / snöoväder slår ut elen", "sno"],
+ ["Långt strömavbrott (1–2 veckor, hela kommunen strömlös)", "el"],
+ ["Förorening av vattentäkt / råvatten (utsläpp, bräddning, sabotage)", "foror"],
+ ["Dricksvatten under gränsvärde (t.ex. PFAS) – kokvattenrekommendation", "foror"],
+ ["Större vattenläcka / ledningsbrott", "ledning"],
+ ["Sabotage eller IT-angrepp mot VA-anläggning / styrsystem", "cyber"],
+ ["Skyfall / översvämning påverkar VA-anläggningar", "skyfall"],
+ ["Torka / lågt grundvatten", "torka"],
+ ["Brist på kemikalier för rening/desinfektion", "kemikalie"],
+ ["Personalbortfall / bemanningsbrist", "personal"],
+ ["Avloppsstörning / bräddning från reningsverk", "avlopp"],
+ ["Ingen kommunal vattenförsörjning på minst en vecka (övningskortlek)", "el"]
+];
+
+/* Förutsättningar per samhälle – redigeras i fliken Samhällen (db.orter) */
+const ORTER_DEF = [
+ {id:"aseda",      namn:"Åseda",                      inv:2740, verk:"Åseda vattenverk",       reservoar:1500, torn:500, reservkraft:1, tank:2000, forbr:6},
+ {id:"lenhovda",   namn:"Lenhovda",                   inv:1770, verk:"Lenhovda vattenverk",    reservoar:800,  torn:300, reservkraft:1, tank:1000, forbr:6},
+ {id:"norrhult",   namn:"Norrhult-Klavreström",       inv:1215, verk:"Norrhults vattenverk",   reservoar:600,  torn:0,   reservkraft:1, tank:800,  forbr:6},
+ {id:"alstermo",   namn:"Alstermo",                   inv:875,  verk:"Alstermo vattenverk",    reservoar:500,  torn:200, reservkraft:1, tank:600,  forbr:6},
+ {id:"alghult",    namn:"Älghult",                    inv:460,  verk:"Alstermo vattenverk",    reservoar:300,  torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"froseke",    namn:"Fröseke",                    inv:170,  verk:"Fröseke vattenverk",     reservoar:150,  torn:0,   reservkraft:0, tank:200,  forbr:6},
+ {id:"lindshammar",namn:"Lindshammar",                inv:150,  verk:"Lindshammar vattenverk", reservoar:100,  torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"marhult",    namn:"Marhult",                    inv:120,  verk:"Marhult vattenverk",     reservoar:80,   torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"savjostrom", namn:"Sävsjöström",                inv:100,  verk:"Sävsjöströms vattenverk",reservoar:80,   torn:0,   reservkraft:0, tank:0,    forbr:6},
+ {id:"landsbygd",  namn:"Landsbygden (enskilda brunnar)", inv:0, verk:"Egen brunn",          reservoar:0,    torn:0,   reservkraft:0, tank:0,    forbr:6}
+];
+
+/* ============================ Lagring ============================ */
+const KEY = "va-simulering-uppvidinge-v1";
+let db = load();
+let nu = "simulera";
+let spelar = null;
+
+function blank(){
+  return {fakta:{befolkning:9061, andelAnslutna:75, normalForbrukning:160, nodMin:3, nodMax:5,
+                 antalVerk:8, antalARV:4, avloppM3:6000, avloppAbonnenter:2800},
+          sim:{}, atgard:{}, fokus:{}, egna:{}, orter:ORTER_DEF.map(o=>Object.assign({},o)), ovningar:[], aktiv:SCENARIOS[0].id,
+          meta:{kommun:"Uppvidinge kommun", uppdaterad:"", version:APP_VERSION}};
+}
+function migrate(d){
+  const b = blank();
+  d = Object.assign(b, d||{});
+  if(typeof d.fakta!=="object"||!d.fakta) d.fakta = b.fakta;
+  d.fakta = Object.assign(b.fakta, d.fakta);
+  if(typeof d.sim!=="object"||!d.sim) d.sim = {};
+  if(typeof d.atgard!=="object"||!d.atgard) d.atgard = {};
+  Object.keys(d.atgard).forEach(sid=>{
+    ["fore","akut","ater"].forEach(fas=>{
+      const o = d.atgard[sid][fas];
+      if(o) Object.keys(o).forEach(k=>{ if(o[k]===true) o[k]=3; else if(o[k]===false) o[k]=0; });
+    });
+  });
+  if(typeof d.fokus!=="object"||!d.fokus) d.fokus = {};
+  if(typeof d.egna!=="object"||!d.egna) d.egna = {};
+  if(!Array.isArray(d.orter)) d.orter = ORTER_DEF.map(o=>Object.assign({},o));
+  if(!Array.isArray(d.ovningar)) d.ovningar = [];
+  else d.orter = ORTER_DEF.map(def=>Object.assign({}, def, d.orter.find(x=>x.id===def.id)||{}));
+  if(!SCENARIOS.some(s=>s.id===d.aktiv)) d.aktiv = b.aktiv;
+  return d;
+}
+function load(){
+  let lokal = null, inbad = null;
+  try{ const d = JSON.parse(localStorage.getItem(KEY)); if(d) lokal = d; }catch(e){}
+  try{
+    const s = document.getElementById("app-seed");
+    if(s && s.textContent.trim()){ const d = JSON.parse(s.textContent); if(d) inbad = d; }
+  }catch(e){}
+  const ts = d => String((d&&d.meta&&d.meta.uppdaterad)||"");
+  if(lokal && inbad) return migrate(ts(lokal) >= ts(inbad) ? lokal : inbad);
+  if(lokal) return migrate(lokal);
+  if(inbad) return migrate(inbad);
+  return blank();
+}
+function save(){ db.meta.uppdaterad = new Date().toISOString().slice(0,10) + " " + new Date().toTimeString().slice(0,5); localStorage.setItem(KEY, JSON.stringify(db)); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function el(id){ return document.getElementById(id); }
+function fmt(n){ return Math.round(n).toLocaleString("sv-SE"); }
+function tidstampel(){
+  const n = new Date();
+  const p = (x,l)=>String(x).padStart(l,"0");
+  return n.getFullYear()+"-"+p(n.getMonth()+1,2)+"-"+p(n.getDate(),2)+"_kl"+p(n.getHours(),2)+"."+p(n.getMinutes(),2)+"."+p(n.getSeconds(),2);
+}
+
+/* ============================ Beräkning ============================ */
+function aktivScenario(){ return SCENARIOS.find(s=>s.id===db.aktiv) || SCENARIOS[0]; }
+function grad(s){ const g = db.sim[s.id] && db.sim[s.id].grad; return (g>=1&&g<=5)?g:3; }
+function anslutna(){ return Math.round(db.fakta.befolkning * db.fakta.andelAnslutna/100); }
+function berakna(s, gOverride){
+  const gg = (gOverride>=1 && gOverride<=5) ? gOverride : grad(s);
+  const g = gg-1;
+  const a = anslutna();
+  return {prod:s.prod[g], aff:s.aff[g], liter:s.liter[g], dagar:s.dagar[g], kost:s.kost[g],
+          utan:Math.round(a*s.aff[g]), a, extra:s.extra.values[g], extraLabel:s.extra.label};
+}
+function prodStatus(p){
+  if(p>=100) return ["ok","Normal drift"];
+  if(p>=70) return ["warn","Begränsad produktion"];
+  if(p>=40) return ["bad","Allvarlig störning"];
+  if(p>0) return ["kat","Kritisk nivå – nödvatten krävs"];
+  return ["kat","Produktionsstopp"];
+}
+function literStatus(l){
+  const f = db.fakta;
+  if(l>=f.normalForbrukning) return ["ok","Normal förbrukning"];
+  if(l>=f.nodMax) return ["warn","Nödvattennivå (hygien möjlig)"];
+  if(l>=f.nodMin) return ["bad","Krisminimum – endast dryck/matlagning"];
+  return ["kat","Under krisminimum – hälsorisk"];
+}
+/* ============================ Lösningsmix & förväntat resultat ============================ */
+const FASVIKT = {fore:1.0, akut:1.3, ater:0.7, egen:1.0};
+const MAX_LINDRING = 0.8;
+function nivaAv(a, fas, i){
+  let v = a[fas] ? a[fas][i] : 0;
+  if(v === true) v = 3;
+  v = parseInt(v,10);
+  return (v>=0 && v<=3) ? v : 0;
+}
+function losningsMix(s, gOverride, fokus){
+  const a = db.atgard[s.id] || {};
+  const egna = db.egna[s.id] || [];
+  const b0 = berakna(s, gOverride);
+  const f = db.fakta;
+  let maxSumma = 0;
+  const rad = [];
+  ["fore","akut","ater"].forEach(fas=>{
+    const w = FASVIKT[fas];
+    s.losn[fas].forEach((x,i)=>{
+      const lvl = nivaAv(a,fas,i);
+      maxSumma += 3*w;
+      rad.push({fas, i, lvl, vikt:w, bidrag:0, text:x});
+    });
+  });
+  egna.forEach((e2,i)=>{
+    const w = FASVIKT.egen;
+    const lvl = Math.max(0, Math.min(3, parseInt(e2.niva,10)||0));
+    maxSumma += 3*w;
+    rad.push({fas:"egen", i, lvl, vikt:w, bidrag:0, text:e2.text});
+  });
+  rad.forEach(r=>{ r.bidrag = maxSumma>0 ? MAX_LINDRING*(r.lvl*r.vikt)/maxSumma : 0; });
+  let m;
+  const fk = fokus || "mix";
+  if(fk!=="mix"){
+    const parts = String(fk).split(":");
+    const r = rad.find(r=>r.fas===parts[0] && r.i===parseInt(parts[1],10));
+    if(r){ const lvl = r.lvl>0 ? r.lvl : 3; m = maxSumma>0 ? MAX_LINDRING*(lvl*r.vikt)/maxSumma : 0; }
+    else m = 0;
+  } else {
+    m = Math.min(MAX_LINDRING, rad.reduce((t,r)=>t+r.bidrag,0));
+  }
+  const e = {
+    prod: Math.min(100, b0.prod + (100-b0.prod)*m),
+    utan: Math.round(b0.utan*(1-m)),
+    liter: Math.round(b0.liter + (f.normalForbrukning-b0.liter)*m),
+    dagar: Math.max(1, Math.round(b0.dagar*(1-0.7*m))),
+    kost: Math.round(b0.kost*(1-0.5*m)*10)/10
+  };
+  return {b0, m, e, rad, fokus: fk};
+}
+function mixHtml(s, mix){
+  const fokus = mix.fokus || "mix";
+  const enskild = fokus!=="mix" ? mix.rad.find(r=>r.fas+":"+r.i===fokus) : null;
+  const vad = enskild ? "enskild lösning (“"+(enskild.text.length>70?enskild.text.slice(0,70)+"…":enskild.text)+"”)" : "hela lösningsmixen (alla valda nivåer)";
+  if(mix.m<=0 && !enskild){
+    return '<p class="hint" style="margin:10px 0 0">Inga lösningar valda än – välj lösningar och intensitet under ”Rekommenderade lösningar”, eller välj/ange en enskild lösning ovan, så visas förväntat resultat per krisintensitet här.</p>';
+  }
+  const b = mix.b0, e = mix.e;
+  const rad = (lbl,a,c,enh)=>`<div class="bar-row"><span class="lbl">${lbl}</span><span style="font-size:.9em">${a} ${enh}</span><span style="color:var(--muted)">→</span><b>${c} ${enh}</b></div>`;
+  const g0 = grad(s);
+  const rows = [1,2,3,4,5].map(g=>{
+    const mx = losningsMix(s, g, fokus);
+    const cur = g===g0 ? ' style="background:#eaf4fa"' : '';
+    return `<tr${cur}><td><b>${g}</b> · ${GRAD_NAMN[g-1].split("·")[1].trim()}${g===g0?" (vald)":""}</td><td>${mx.b0.prod} % → <b>${Math.round(mx.e.prod)} %</b></td><td>${fmt(mx.b0.utan)} → <b>${fmt(mx.e.utan)}</b></td><td>${mx.b0.liter} → <b>${mx.e.liter}</b> L</td><td>${mx.b0.dagar} → <b>${mx.e.dagar}</b> d</td><td>${mx.b0.kost} → <b>${mx.e.kost}</b> Mkr</td></tr>`;
+  }).join("");
+  return `
+  <p class="hint" style="margin:10px 0 6px">Utvärderar: <b>${vad}</b>. Förväntad lindring vid vald krisintensitet: <b>${Math.round(100*mix.m)} %</b> (max ${Math.round(MAX_LINDRING*100)} %). Modell: varje lösning på nivå 1–3 bidrar efter fas (förebyggande ×${FASVIKT.fore}, akut ×${FASVIKT.akut}, återställning ×${FASVIKT.ater}, egen ×${FASVIKT.egen}).</p>
+  ${rad("Produktion", b.prod+" %", Math.round(e.prod)+" %", "")}
+  ${rad("Utan vatten", fmt(b.utan)+" pers", fmt(e.utan)+" pers", "")}
+  ${rad("Vatten per person", b.liter+" L", e.liter+" L", "/dygn")}
+  ${rad("Varaktighet", b.dagar+" dygn", e.dagar+" dygn", "")}
+  ${rad("Kostnad", "ca "+b.kost+" Mkr", "ca "+e.kost+" Mkr", "")}
+  <h3 style="margin:14px 0 6px">Resultat beroende på krisens intensitet (utan åtgärd → med utvärderad lösning)</h3>
+  <table><tr><th>Krisintensitet</th><th>Produktion</th><th>Utan vatten (pers)</th><th>Vatten L/p/d</th><th>Varaktighet</th><th>Kostnad (Mkr)</th></tr>${rows}</table>
+  <p style="font-size:.85em;color:var(--muted);margin:8px 0 0">Status med lösningen vid vald intensitet ${g0}: produktion – ${prodStatus(e.prod)[1]} · förbrukning – ${literStatus(e.liter)[1]}.</p>`;
+}
+function sattGrad(id, v){
+  v = Math.max(1, Math.min(5, parseInt(v,10)||3));
+  db.sim[id] = {grad:v}; save();
+  if(id===db.aktiv) renderSim();
+  if(nu==="jamfor") renderJamfor();
+}
+function sattAktiv(id){ db.aktiv = id; save(); renderSim(); }
+
+/* ============================ Navigation ============================ */
+function show(v){
+  nu = v;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
+  document.querySelectorAll("main section").forEach(s=>s.hidden = s.id !== "view-"+v);
+  ({simulera:renderSim, jamfor:renderJamfor, atgard:renderAtgard, fakta:renderFakta, samhallen:renderSamhallen, ovningar:renderOvningar, om:renderOm})[v]();
+  window.scrollTo(0,0);
+}
+
+/* ============================ Simulering ============================ */
+function renderSim(){
+  stoppaSpel();
+  const s = aktivScenario(), b = berakna(s), g = grad(s);
+  const ps = prodStatus(b.prod), ls = literStatus(b.liter);
+  const orter = s.orter.filter(o=>o.fran<=g);
+  const kon = s.konsekv.filter(k=>k.fran<=g);
+  const fokus = db.fokus[s.id] || "mix";
+  const mix = losningsMix(s, null, fokus);
+  el("view-simulera").innerHTML = `
+  <h2>Simulera ett scenario</h2>
+  <p class="hint">Välj scenario, ställ in allvarlighetsgrad och se beräknat utfall för Uppvidinge kommun. Siffrorna bygger på kommunfakta under fliken ”Kommunfakta” och är uppskattningar för övning.</p>
+
+  <div class="card no-print">
+    <h3 style="margin-top:0">1 · Välj scenario</h3>
+    <div class="scen-grid">
+      ${SCENARIOS.map(x=>`<button class="scen-btn ${x.id===s.id?"active":""}" onclick="sattAktiv('${x.id}')">
+        <span class="ikon">${x.ikon}</span><span><b>${esc(x.namn)}</b><small>${esc(x.kat)}</small></span></button>`).join("")}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row-flex" style="justify-content:space-between">
+      <div><h3 style="margin-top:0">${s.ikon} ${esc(s.namn)}</h3>
+      <span class="chip info">${esc(s.kat)}</span> <span class="chip">Händelseplan ${esc(s.handel)} i index.html</span></div>
+    </div>
+    <p style="margin:4px 0"><b>Scenario:</b> ${esc(s.kort)}</p>
+    <p style="color:var(--muted);font-size:.92em">${esc(s.beskr)}</p>
+    <label for="grad">2 · Allvarlighetsgrad: <b>${GRAD_NAMN[g-1]}</b></label>
+    <input type="range" id="grad" min="1" max="5" step="1" value="${g}" oninput="sattGrad('${s.id}', this.value)">
+    <div class="grad-lbl"><span>1 · Lindrig</span><span>2 · Måttlig</span><span>3 · Allvarlig</span><span>4 · Svår</span><span>5 · Katastrofal</span></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">3 · Beräknat utfall</h3>
+    <div class="row-flex" style="margin-bottom:10px">
+      <span class="chip ${ps[0]}">Dricksvattenproduktion: ${ps[1]}</span>
+      <span class="chip ${ls[0]}">Vattenförbrukning: ${ls[1]}</span>
+    </div>
+    <div class="grid two">
+      <div class="stat"><b>${b.prod} %</b><span>av normal dricksvattenproduktion (8 vattenverk)</span>
+        <div class="progress"><i style="width:${b.prod}%;background:${b.prod>=70?"var(--ok)":b.prod>=40?"var(--warn)":"var(--danger)"}"></i></div></div>
+      <div class="stat"><b>${fmt(b.utan)} pers</b><span>utan kommunalt vatten (${Math.round(100*b.aff)} % av ${fmt(b.a)} anslutna; ${Math.round(100*b.utan/db.fakta.befolkning)} % av alla ${fmt(db.fakta.befolkning)} invånare)</span>
+        <div class="progress"><i style="width:${Math.round(100*b.aff)}%;background:${b.aff>=0.7?"var(--danger)":b.aff>=0.35?"var(--warn)":"var(--brand)"}"></i></div></div>
+      <div class="stat"><b>${b.liter} L</b><span>per person och dygn (normalt ca ${db.fakta.normalForbrukning} L; krisminimum ${db.fakta.nodMin}–${db.fakta.nodMax} L)</span></div>
+      <div class="stat"><b>${b.dagar} dygn</b><span>beräknad varaktighet innan normal drift</span></div>
+      <div class="stat"><b>ca ${b.kost} Mkr</b><span>uppskattad kostnad (nödvatten, reparation, personal, sanering)</span></div>
+      <div class="stat"><b>${esc(b.extra)}</b><span>${esc(b.extraLabel)}</span></div>
+    </div>
+    <h3>Påverkade områden</h3>
+    <div>${orter.length?orter.map(o=>`<span class="chip bad">${esc(o.n)}</span>`).join(""):'<span class="chip ok">Inga specifika orter direkt påverkade vid denna nivå</span>'}</div>
+    ${kon.length?`<h3>Konsekvenser</h3><ul class="tight">${kon.map(k=>`<li>${esc(k.text)}</li>`).join("")}</ul>`:""}
+  </div>
+
+  <div class="card">
+    <div class="row-flex" style="justify-content:space-between">
+      <h3 style="margin:0">3b · Förväntat resultat av lösning – per krisintensitet</h3>
+      <button class="ghost small no-print" onclick="show('atgard')">Välj lösningar &amp; intensitet →</button>
+    </div>
+    <div class="no-print" style="margin-bottom:8px">${fokusHtml(s)}</div>
+    ${mixHtml(s, mix)}
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">3c · Påverkan per samhälle (vid vald krisintensitet ${g})</h3>
+    ${orterHtml(s, mix)}
+    <button class="ghost small no-print" onclick="show('samhallen')">Redigera förutsättningar per samhälle →</button>
+  </div>
+
+  <div class="card">
+    <div class="row-flex" style="justify-content:space-between">
+      <h3 style="margin:0">4 · Händelseförlopp (tidslinje)</h3>
+      <div class="no-print">
+        <button class="ghost small" id="btn-spela" onclick="spelaUpp()">▶ Spela upp</button>
+        <button class="ghost small" onclick="stoppaSpel();visaAlla()">Visa alla</button>
+      </div>
+    </div>
+    <p class="hint" id="spel-status">Händelser dag för dag från larm till återgång.</p>
+    <ul class="tl" id="tidslinje">
+      ${s.tidslinje.map((t,i)=>`<li data-i="${i}"><span class="dag">Dag ${t.dag}</span><span><span class="typ ${t.typ}">${t.typ}</span><br>${esc(t.text)}</span></li>`).join("")}
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="row-flex" style="justify-content:space-between">
+      <h3 style="margin:0">5 · Rekommenderade lösningar</h3>
+      <button class="ghost small no-print" onclick="show('atgard')">Hantera åtgärder →</button>
+    </div>
+    <div class="grid three">
+      <div class="kolumn fore"><h4>🛡️ Förebyggande (före krisen)</h4><ul class="tight">${s.losn.fore.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="kolumn akut"><h4>🚨 Akut (under krisen)</h4><ul class="tight">${s.losn.akut.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="kolumn ater"><h4>🔁 Återställning &amp; lärdomar</h4><ul class="tight">${s.losn.ater.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">6 · Övningssammanställning</h3>
+    <div id="sammanstallning" style="white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:.85em">${esc(sammanstallningText(s, b, g))}</div>
+    <div class="row-flex no-print" style="margin-top:10px">
+      <button class="primary" onclick="window.print()">🖨️ Skriv ut sammanställning</button>
+      <button class="ghost" onclick="kopieraSammanstallning()">📋 Kopiera som text</button>
+    </div>
+  </div>`;
+}
+
+/* ============================ Sammanställning ============================ */
+function sammanstallningText(s, b, g){
+  const orter = s.orter.filter(o=>o.fran<=g).map(o=>o.n);
+  const kon = s.konsekv.filter(k=>k.fran<=g).map(k=>k.text);
+  const klara = atgardKlara(s);
+  const mix = losningsMix(s, null, db.fokus[s.id]||"mix");
+  const lines = [
+    "ÖVNINGSSAMMANSTÄLLNING – VA-simulering, " + db.meta.kommun + " (" + APP_VERSION + "),",
+    "Scenario: " + s.ikon + " " + s.namn + " – allvarlighetsgrad " + g + "/5 (" + GRAD_NAMN[g-1] + ")",
+    "",
+    "BERÄKNAT UTFALL:",
+    "- Dricksvattenproduktion: " + b.prod + " % av normal kapacitet (8 vattenverk, alla grundvatten)",
+    "- Personer utan kommunalt vatten: " + fmt(b.utan) + " (" + Math.round(100*b.aff) + " % av " + fmt(b.a) + " anslutna)",
+    "- Tillgängligt vatten: " + b.liter + " L/person/dygn (normalt ca " + db.fakta.normalForbrukning + " L)",
+    "- Beräknad varaktighet: " + b.dagar + " dygn",
+    "- Uppskattad kostnad: ca " + b.kost + " Mkr",
+    "- " + b.extraLabel + ": " + b.extra,
+    orter.length ? "- Påverkade områden: " + orter.join(", ") : "- Påverkade områden: inga specifika vid denna nivå",
+    "",
+    "KONSEKVENSER:",
+    ...(kon.length?kon.map(k=>"- "+k):["- Inga särskilda vid denna nivå"]),
+    "",
+    "REKOMMENDERADE LÖSNINGAR (vald intensitet 0–3, totalt " + klara.poang + "/" + klara.maxPoang + " nivåpoäng):",
+    ...losningsRader(s),
+    "",
+    "FÖRVÄNTAT RESULTAT VID VALD KRISINTENSITET (utan → med, lindring " + Math.round(100*mix.m) + " %):",
+    "- Produktion: " + mix.b0.prod + " % → " + Math.round(mix.e.prod) + " %",
+    "- Personer utan vatten: " + fmt(mix.b0.utan) + " → " + fmt(mix.e.utan),
+    "- Vatten: " + mix.b0.liter + " → " + mix.e.liter + " L/person/dygn",
+    "- Varaktighet: " + mix.b0.dagar + " → " + mix.e.dagar + " dygn",
+    "- Kostnad: ca " + mix.b0.kost + " → ca " + mix.e.kost + " Mkr",
+    "",
+    "",
+    "Övningslogg: " + (db.ovningar||[]).length + " övning(ar) loggade (fliken Övningar).",
+    "UTVÄRDERAR: " + fokusLabel(s),
+    "RESULTAT PER KRISINTENSITET (utan → med):",
+    ...[1,2,3,4,5].map(g=>{ const mx = losningsMix(s, g, db.fokus[s.id]||"mix"); return "- Grad " + g + ": produktion " + mx.b0.prod + "→" + Math.round(mx.e.prod) + " %, utan vatten " + fmt(mx.b0.utan) + "→" + fmt(mx.e.utan) + " pers, " + mx.b0.liter + "→" + mx.e.liter + " L/p/d, " + mx.b0.dagar + "→" + mx.e.dagar + " dygn, kostnad " + mx.b0.kost + "→" + mx.e.kost + " Mkr"; }),
+    "",
+    "",
+    "SAMHÄLLEN VID VALD INTENSITET (utan → med, personer utan vatten):",
+    ...(db.orter||[]).map(o=>"- " + o.namn + ": " + fmt(ortUtan(o,s,g,0)) + " → " + fmt(ortUtan(o,s,g,mix.m)) + " (buffert " + Math.round(ortBuffert(o)) + " h)"),
+    "",
+    "Kopplat till händelseplan " + s.handel + " i VA‑beredskapsappen (index.html)."
+  ];
+  return lines.join("\n");
+}
+function losningsRader(s){
+  const a = db.atgard[s.id] || {};
+  const rader = [];
+  [["fore","Förebyggande"],["akut","Akut"],["ater","Återställning"]].forEach(([fas,namn])=>{
+    s.losn[fas].forEach((x,i)=>{ const lvl = nivaAv(a,fas,i); rader.push("[" + (lvl||" ") + "] (" + namn + ") " + x); });
+  });
+  return rader;
+}
+function kopieraSammanstallning(){
+  const s = aktivScenario(), b = berakna(s);
+  const txt = sammanstallningText(s, b, grad(s));
+  const done = ()=>{ const b2 = el("sammanstallning"); if(b2){ b2.textContent = txt + "\n\n(Kopierad till urklipp)"; } };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, done); } else { done(); }
+}
+
+/* ============================ Fokus: enskild lösning / egna lösningar ============================ */
+function sattFokus(sid, v){ db.fokus[sid] = v; save(); renderSim(); }
+function fokusLabel(s){
+  const fk = db.fokus[s.id] || "mix";
+  if(fk==="mix") return "hela lösningsmixen";
+  const parts = String(fk).split(":");
+  const mx = losningsMix(s);
+  const r = mx.rad.find(r=>r.fas===parts[0] && r.i===parseInt(parts[1],10));
+  const namn = {fore:"förebyggande", akut:"akut", ater:"återställning", egen:"egen"}[parts[0]] || parts[0];
+  return r ? "enskild lösning (" + namn + "): " + r.text : "okänd lösning";
+}
+function fokusHtml(s){
+  const fk = db.fokus[s.id] || "mix";
+  const ikon = {fore:"🛡️", akut:"🚨", ater:"🔁", egen:"✏️"};
+  const namn = {fore:"förebyggande", akut:"akut", ater:"återställning", egen:"egen"};
+  const opts = ['<option value="mix"'+(fk==="mix"?" selected":"")+'>Hela lösningsmixen (alla valda nivåer)</option>'];
+  ["fore","akut","ater"].forEach(fas=>s.losn[fas].forEach((x,i)=>{
+    const t = x.length>60 ? x.slice(0,60)+"…" : x;
+    opts.push(`<option value="${fas}:${i}"${fk===fas+":"+i?" selected":""}>${ikon[fas]} ${namn[fas]}: ${esc(t)}</option>`);
+  }));
+  (db.egna[s.id]||[]).forEach((e2,i)=>{
+    const t = e2.text.length>60 ? e2.text.slice(0,60)+"…" : e2.text;
+    opts.push(`<option value="egen:${i}"${fk==="egen:"+i?" selected":""}>✏️ egen: ${esc(t)}</option>`);
+  });
+  return `<label>Välj lösning att utvärdera (resultat visas per krisintensitet 1–5):</label><select style="max-width:100%" onchange="sattFokus('${s.id}', this.value)">${opts.join("")}</select>`;
+}
+function laggTillEgen(sid){
+  const inp = el("egen-"+sid);
+  const t = (inp.value||"").trim();
+  if(!t) return;
+  const arr = db.egna[sid] || (db.egna[sid] = []);
+  arr.push({text:t, niva:3});
+  inp.value = "";
+  save(); renderAtgard(); if(nu==="simulera") renderSim();
+}
+function taBortEgen(sid, i){ (db.egna[sid]||[]).splice(i,1); save(); renderAtgard(); if(nu==="simulera") renderSim(); }
+function sattEgenNiva(sid, i, v){
+  const arr = db.egna[sid]||[];
+  if(arr[i]){ arr[i].niva = Math.max(0, Math.min(3, parseInt(v,10)||0)); save(); renderAtgard(); if(nu==="simulera") renderSim(); }
+}
+
+/* ============================ Samhällen: förutsättningar & påverkan ============================ */
+function ortInv(o){
+  if(o.id!=="landsbygd") return o.inv|0;
+  let t = 0;
+  (db.orter||[]).forEach(x=>{ if(x.id!=="landsbygd") t += x.inv|0; });
+  return Math.max(0, (db.fakta.befolkning|0) - t);
+}
+function ortBuffert(o){
+  const inv = ortInv(o);
+  const dagligL = inv * db.fakta.normalForbrukning;
+  const resL = ((o.reservoar||0)+(o.torn||0))*1000;
+  const resH = dagligL>0 ? resL/(dagligL/24) : 0;
+  const fuelH = (o.reservkraft && (o.tank||0)>0) ? (o.tank||0)/Math.max(0.1,(o.forbr||6)) : 0;
+  if(resL>0 && fuelH>0) return Math.min(resH, fuelH);
+  if(resL>0) return resH;
+  return fuelH;
+}
+function ortUtan(o, s, g, m){
+  const inv = ortInv(o);
+  const b = berakna(s, g);
+  const klararH = ortBuffert(o);
+  const skydd = b.dagar>0 ? Math.min(1, klararH/(b.dagar*24)) : 0;
+  return Math.round(inv * s.aff[g-1] * (1-skydd) * (1-(m||0)));
+}
+function saveOrt(id, key, val){
+  const o = (db.orter||[]).find(x=>x.id===id);
+  if(!o) return;
+  if(["inv","reservoar","torn","tank","forbr"].includes(key)){ const v = parseFloat(val); o[key] = isNaN(v)?0:v; }
+  else if(key==="reservkraft"){ o.reservkraft = val==="1" ? 1 : 0; }
+  else o[key] = val;
+  save(); renderSamhallen(); if(nu==="simulera") renderSim();
+}
+function orterHtml(s, mix){
+  const g = grad(s);
+  const rows = (db.orter||[]).map(o=>{
+    const klarar = ortBuffert(o);
+    const u0 = ortUtan(o, s, g, 0);
+    const u1 = ortUtan(o, s, g, mix.m);
+    return `<tr><td><b>${esc(o.namn)}</b></td><td>${fmt(ortInv(o))}</td><td>${esc(o.verk)}</td><td>${Math.round(klarar)}</td><td>${fmt(u0)}</td><td><b>${fmt(u1)}</b></td></tr>`;
+  }).join("");
+  const tot0 = (db.orter||[]).reduce((t,o)=>t+ortUtan(o,s,g,0),0);
+  const tot1 = (db.orter||[]).reduce((t,o)=>t+ortUtan(o,s,g,mix.m),0);
+  return `<table><tr><th>Samhälle</th><th>Inv</th><th>Vattenverk</th><th>Buffert utan prod. (h)</th><th>Utan vatten – utan åtgärder</th><th>Utan vatten – med utvärderad lösning</th></tr>${rows}
+  <tr style="font-weight:700;background:var(--chipBg)"><td>Totalt (ca)</td><td>${fmt((db.orter||[]).reduce((t,o)=>t+ortInv(o),0))}</td><td></td><td></td><td>${fmt(tot0)}</td><td>${fmt(tot1)}</td></tr></table>
+  <p class="hint">Buffert = hur länge reservoar + vattentorn (och ev. reservkraft med bränsle från ”el-tanken”) räcker vid produktionsstopp, beräknat från ortens förutsättningar i fliken Samhällen. Landsbygden med egen brunn är beroende av el till pumpen.</p>`;
+}
+function renderSamhallen(){
+  const verks = VERK.map(v=>v[0]).concat(["Egen brunn"]);
+  el("view-samhallen").innerHTML = `
+  <h2>Samhällen i Uppvidinge – förutsättningar</h2>
+  <p class="hint">Ange förutsättningar per samhälle: invånare, vattenverk, reservoar- och vattentornsvolym (m³), reservkraft ja/nej, bränsletank (”el-tank”, L) och generatorförbrukning (L/h). Sparas lokalt och används i Simulering (kort 3c) för buffertid och påverkan per samhälle. Landsbygden = kommunens befolkning minus tätorterna (beräknas automatiskt).</p>
+  <div class="card" style="overflow-x:auto">
+  <table>
+   <tr><th>Samhälle</th><th>Inv</th><th>Vattenverk</th><th>Reservoir m³</th><th>Vattentorn m³</th><th>Reservkraft</th><th>Bränsletank L</th><th>Förbr. L/h</th><th>Förbr. m³/d</th><th>Buffert h</th></tr>
+   ${(db.orter||[]).map(o=>`<tr>
+     <td><input type="text" value="${esc(o.namn)}" onchange="saveOrt('${o.id}','namn',this.value)" style="min-width:170px"></td>
+     <td><input type="number" value="${ortInv(o)}" ${o.id==="landsbygd"?'disabled title="Beräknas från kommunfakta"':''} onchange="saveOrt('${o.id}','inv',this.value)" style="width:85px"></td>
+     <td><select onchange="saveOrt('${o.id}','verk',this.value)">${verks.map(v=>`<option${v===o.verk?" selected":""}>${esc(v)}</option>`).join("")}</select></td>
+     <td><input type="number" value="${o.reservoar||0}" onchange="saveOrt('${o.id}','reservoar',this.value)" style="width:85px"></td>
+     <td><input type="number" value="${o.torn||0}" onchange="saveOrt('${o.id}','torn',this.value)" style="width:85px"></td>
+     <td><select onchange="saveOrt('${o.id}','reservkraft',this.value)"><option value="1"${o.reservkraft?" selected":""}>Ja</option><option value="0"${o.reservkraft?"":" selected"}>Nej</option></select></td>
+     <td><input type="number" value="${o.tank||0}" onchange="saveOrt('${o.id}','tank',this.value)" style="width:85px"></td>
+     <td><input type="number" value="${o.forbr||6}" step="0.5" onchange="saveOrt('${o.id}','forbr',this.value)" style="width:70px"></td>
+     <td>${(ortInv(o)*db.fakta.normalForbrukning/1000).toFixed(1)}</td>
+     <td><b>${Math.round(ortBuffert(o))}</b></td>
+   </tr>`).join("")}
+  </table></div>`;
+}
+
+/* ============================ Övningar (Livsmedelsverket) & övningslogg ============================ */
+function renderOvningar(){
+  el("view-ovningar").innerHTML = `
+  <h2>Övningar – Livsmedelsverkets material om VA/dricksvatten</h2>
+  <p class="hint">Länkar till övningar och övningsmaterial som Livsmedelsverket publicerat (kräver internet). Längst ner kan du logga egna övningar du gjort med denna simulering – sparas lokalt.</p>
+  <div class="card"><h3 style="margin-top:0">Livsmedelsverkets övningsmaterial</h3>
+    <ul class="tight">${LVA_OVNINGAR.map(o=>`<li><a href="${o.url}" target="_blank" rel="noopener">${esc(o.namn)}</a><br><span style="color:var(--muted);font-size:.88em">${esc(o.not)}</span></li>`).join("")}</ul>
+  </div>
+  <div class="card"><h3 style="margin-top:0">Koppla scenariobank till simuleringen</h3>
+    <p class="hint">Livsmedelsverkets färdiga scenarier (Bilaga 2 i handboken, övningsbanken, övningskortleken) – öppna motsvarande scenario i simuleringen:</p>
+    <table><tr><th>Livsmedelsverkets scenario</th><th class="no-print"></th></tr>
+    ${LVA_KOPPLING.map(([t,sid])=>{ const s = SCENARIOS.find(x=>x.id===sid); return `<tr><td>${esc(t)}</td><td class="no-print"><button class="ghost small" onclick="sattAktiv('${sid}');show('simulera')">${s ? s.ikon+" Öppna: "+esc(s.namn) : sid}</button></td></tr>`; }).join("")}
+    </table>
+  </div>
+  <div class="card"><h3 style="margin-top:0">Övningslogg (sparas lokalt)</h3>
+    <div class="grid two no-print">
+      <div>
+        <label>Datum</label><input type="date" id="ov-datum">
+        <label>Övningens namn</label><input type="text" id="ov-namn" placeholder="t.ex. Snöstorm i Uppvidinge">
+        <label>Simulerat scenario</label><select id="ov-scen">${SCENARIOS.map(s=>`<option value="${s.id}">${esc(s.ikon+" "+s.namn)}</option>`).join("")}</select>
+      </div>
+      <div>
+        <label>Deltagare</label><input type="text" id="ov-deltagare" placeholder="t.ex. krisledning, tekniska avdelningen, räddningstjänst">
+        <label>Lärdomar / åtgärder</label><textarea id="ov-lar" placeholder="Vad lärde vi oss?"></textarea>
+        <button class="primary" onclick="laggOvning()">Logga övning</button>
+      </div>
+    </div>
+    <table><tr><th>Datum</th><th>Övning</th><th>Scenario</th><th>Deltagare</th><th>Lärdomar</th><th class="no-print"></th></tr>
+    ${(db.ovningar||[]).map((o,i)=>{ const s = SCENARIOS.find(x=>x.id===o.scen); return `<tr><td>${esc(o.datum||"")}</td><td>${esc(o.namn||"")}</td><td>${s ? esc(s.ikon+" "+s.namn) : esc(o.scen||"")}</td><td>${esc(o.deltagare||"")}</td><td>${esc(o.lar||"")}</td><td class="no-print"><button class="ghost small" onclick="taBortOvning(${i})" title="Ta bort">✕</button></td></tr>`; }).join("") || '<tr><td colspan="6" class="empty">Inga övningar loggade än.</td></tr>'}
+    </table>
+  </div>`;
+}
+function laggOvning(){
+  const o = {datum: el("ov-datum").value, namn: el("ov-namn").value.trim(), scen: el("ov-scen").value, deltagare: el("ov-deltagare").value.trim(), lar: el("ov-lar").value.trim()};
+  if(!o.namn){ alert("Ange ett namn på övningen."); return; }
+  const arr = db.ovningar || (db.ovningar = []);
+  arr.unshift(o); save(); renderOvningar();
+}
+function taBortOvning(i){ (db.ovningar||[]).splice(i,1); save(); renderOvningar(); }
+
+/* ============================ Tidslinje-uppspelning ============================ */
+function spelaUpp(){
+  stoppaSpel();
+  const s = aktivScenario();
+  const items = Array.from(document.querySelectorAll("#tidslinje li"));
+  items.forEach(li=>li.classList.remove("on"));
+  let i = 0;
+  el("btn-spela").disabled = true;
+  spelar = setInterval(()=>{
+    if(i>=items.length){ stoppaSpel(); el("spel-status").textContent = "Klart – hela förloppet visat."; return; }
+    const t = s.tidslinje[i];
+    items[i].classList.add("on");
+    el("spel-status").textContent = "▶ Dag " + t.dag + " av " + s.tidslinje[s.tidslinje.length-1].dag + " – " + t.typ + ": " + t.text;
+    i++;
+  }, 1400);
+}
+function stoppaSpel(){ if(spelar){ clearInterval(spelar); spelar = null; } const b = el("btn-spela"); if(b) b.disabled = false; }
+function visaAlla(){ document.querySelectorAll("#tidslinje li").forEach(li=>li.classList.add("on")); }
+
+/* ============================ Jämförelse ============================ */
+function renderJamfor(){
+  const a = anslutna();
+  el("view-jamfor").innerHTML = `
+  <h2>Jämför alla scenarier</h2>
+  <p class="hint">Samma allvarlighetsgrad som i simuleringen – ändra per scenario. Gröna staplar = produktion kvar, röda = personer utan kommunalt vatten (andel av ${fmt(a)} anslutna).</p>
+  ${SCENARIOS.map(s=>{
+    const g = grad(s), b = berakna(s);
+    return `<div class="card">
+      <div class="row-flex">
+        <div style="flex:1;min-width:220px"><b>${s.ikon} ${esc(s.namn)}</b> <span class="chip info">${esc(s.kat)}</span></div>
+        <div style="flex:2;min-width:240px" class="no-print">
+          <input type="range" min="1" max="5" step="1" value="${g}" oninput="sattGrad('${s.id}', this.value)" style="max-width:260px">
+          <span style="font-size:.85em;color:var(--muted)">${GRAD_NAMN[g-1]}</span>
+        </div>
+        <button class="ghost small no-print" onclick="sattAktiv('${s.id}');show('simulera')">Öppna →</button>
+      </div>
+      <div class="bar-row"><span class="lbl">Produktion kvar</span><span class="bar"><i style="width:${b.prod}%;background:${b.prod>=70?"var(--ok)":b.prod>=40?"var(--warn)":"var(--danger)"}"></i></span><span class="val">${b.prod} %</span></div>
+      <div class="bar-row"><span class="lbl">Utan vatten</span><span class="bar"><i style="width:${Math.round(100*b.aff)}%;background:var(--danger)"></i></span><span class="val">${fmt(b.utan)} pers</span></div>
+      <div class="bar-row"><span class="lbl">Varaktighet / kostnad</span><span class="val" style="width:auto;text-align:left">${b.dagar} dygn · ca ${b.kost} Mkr · ${b.liter} L/p/d</span></div>
+    </div>`;
+  }).join("")}`;
+}
+
+/* ============================ Åtgärder ============================ */
+function atgardKlara(s){
+  const a = db.atgard[s.id] || {};
+  let tot=0, poang=0;
+  ["fore","akut","ater"].forEach(fas=>s.losn[fas].forEach((_,i)=>{ tot++; poang += nivaAv(a,fas,i); }));
+  (db.egna[s.id]||[]).forEach(e2=>{ tot++; poang += Math.max(0, Math.min(3, parseInt(e2.niva,10)||0)); });
+  return {tot, poang, maxPoang: tot*3};
+}
+function kryssa(sid, fas, i, v){
+  const a = db.atgard[sid] || (db.atgard[sid] = {fore:{}, akut:{}, ater:{}});
+  a[fas][i] = Math.max(0, Math.min(3, parseInt(v,10)||0));
+  save(); renderAtgard();
+  if(nu==="simulera") renderSim();
+}
+function renderAtgard(){
+  let tot=0, poang=0, maxPoang=0;
+  SCENARIOS.forEach(s=>{ const k = atgardKlara(s); tot+=k.tot; poang+=k.poang; maxPoang+=k.maxPoang; });
+  const pct = maxPoang? Math.round(100*poang/maxPoang):0;
+  el("view-atgard").innerHTML = `
+  <h2>Rekommenderade lösningar – åtgärdslista</h2>
+  <p class="hint">Sätt <b>intensitet 0–3</b> per lösning (0 = ej vald, 1 = låg, 2 = medel, 3 = hög/genomförd). Sparas lokalt. I fliken Simulering visas då <b>förväntat resultat</b> av hela lösningsmixen (utan/med åtgärder), och varje lösning visar sitt eget bidrag. Använd t.ex. i övningar eller som underlag till händelseplanerna i index.html.</p>
+  <div class="card">
+    <div class="row-flex" style="justify-content:space-between">
+      <b>Totalt: ${poang}/${maxPoang} nivåpoäng (${pct} % av full intensitet)</b>
+      <button class="ghost small no-print" onclick="window.print()">🖨️ Skriv ut</button>
+    </div>
+    <div class="progress"><i style="width:${pct}%"></i></div>
+  </div>
+  ${SCENARIOS.map(s=>{
+    const a = db.atgard[s.id] || {};
+    const k = atgardKlara(s);
+    const pctS = k.maxPoang? Math.round(100*k.poang/k.maxPoang):0;
+    return `<div class="card">
+      <div class="row-flex" style="justify-content:space-between">
+        <div><b>${s.ikon} ${esc(s.namn)}</b> <span class="chip info">${esc(s.kat)}</span></div>
+        <span>${k.poang}/${k.maxPoang} (${pctS} %)</span>
+      </div>
+      <div class="progress"><i style="width:${pctS}%"></i></div>
+      <div class="grid three">
+        ${[["fore","🛡️ Förebyggande"],["akut","🚨 Akut"],["ater","🔁 Återställning"]].map(([fas,namn])=>`
+        <div class="kolumn ${fas}"><h4>${namn}</h4>
+          ${(()=>{ const mix = losningsMix(s); return s.losn[fas].map((x,i)=>{
+            const rad = mix.rad.find(r=>r.fas===fas && r.i===i);
+            const lvl = nivaAv(a,fas,i);
+            return `<div class="check-item">
+            <select class="niva" onchange="kryssa('${s.id}','${fas}',${i},this.value)" title="Intensitet 0–3">
+              <option value="0"${lvl===0?" selected":""}>0 · Ej vald</option>
+              <option value="1"${lvl===1?" selected":""}>1 · Låg</option>
+              <option value="2"${lvl===2?" selected":""}>2 · Medel</option>
+              <option value="3"${lvl===3?" selected":""}>3 · Hög</option>
+            </select>
+            <span class="txt">${esc(x)}${rad && rad.bidrag>0 ? ` <span class="chip info">−${Math.round(100*rad.bidrag)} % av utfallet</span>` : ""}</span>
+          </div>`; }).join(""); })()}
+        </div>`).join("")}
+      <div class="kolumn egen"><h4>✏️ Egna lösningar (ange själv)</h4>
+        <div class="check-item no-print"><input type="text" id="egen-${s.id}" placeholder="Ange en egen lösning…" style="flex:1"><button class="ghost small" onclick="laggTillEgen('${s.id}')">Lägg till</button></div>
+        ${(db.egna[s.id]||[]).map((e2,i)=>`<div class="check-item">
+          <select class="niva" onchange="sattEgenNiva('${s.id}',${i},this.value)">${[0,1,2,3].map(l=>`<option value="${l}"${(e2.niva||0)===l?" selected":""}>${l===0?"0 · Ej vald":l===1?"1 · Låg":l===2?"2 · Medel":"3 · Hög"}</option>`).join("")}</select>
+          <span class="txt">${esc(e2.text)}</span>
+          <button class="ghost small no-print" onclick="taBortEgen('${s.id}',${i})" title="Ta bort">✕</button>
+        </div>`).join("") || '<p class="hint">Inga egna lösningar än.</p>'}
+      </div>
+      </div>
+    </div>`;
+  }).join("")}`;
+}
+
+/* ============================ Kommunfakta ============================ */
+function sparaFakta(){
+  const f = db.fakta;
+  ["befolkning","andelAnslutna","normalForbrukning","nodMin","nodMax","antalVerk","antalARV","avloppM3","avloppAbonnenter"].forEach(k=>{
+    const v = parseFloat(el("f-"+k).value);
+    if(!isNaN(v)) f[k] = v;
+  });
+  save(); renderFakta();
+  if(nu==="simulera") renderSim();
+}
+function renderFakta(){
+  const f = db.fakta;
+  const fld = (k,lbl,enh)=>`<label>${lbl}</label><div class="row-flex"><input type="number" id="f-${k}" value="${f[k]}" style="max-width:160px" step="any"><span style="color:var(--muted);font-size:.85em">${enh}</span></div>`;
+  el("view-fakta").innerHTML = `
+  <h2>Kommunfakta – Uppvidinge kommun</h2>
+  <p class="hint">Grundvärden som styr alla beräkningar i simuleringen. Ändra vid behov och spara. Källor: uppvidinge.se, SCB, Länsstyrelsen Kronobergs vattenförsörjningsplan.</p>
+  <div class="card">
+    <h3 style="margin-top:0">Grundvärden (redigerbara)</h3>
+    <div class="grid two">
+      <div>
+        ${fld("befolkning","Invånare i kommunen (31 dec 2024)","pers")}
+        ${fld("andelAnslutna","Andel boende i tätort / anslutna till kommunalt vatten","%")}
+        ${fld("normalForbrukning","Normal vattenförbrukning","L/person/dygn")}
+        ${fld("nodMin","Krisminimum nödvatten (MSB/Livsmedelsverket)","L/person/dygn")}
+        ${fld("nodMax","Nödvatten för hygien vid längre avbrott","L/person/dygn")}
+      </div>
+      <div>
+        ${fld("antalVerk","Antal kommunala vattenverk","st (alla grundvatten)")}
+        ${fld("antalARV","Antal kompletta avloppsreningsverk (+ 5 biologiska dammar)","st")}
+        ${fld("avloppM3","Behandlat avloppsvatten","m³/dygn")}
+        ${fld("avloppAbonnenter","Anslutna till kommunalt avlopp (inkl. industrier)","abonnenter")}
+      </div>
+    </div>
+    <p style="font-size:.85em;color:var(--muted)">Beräkning: anslutna = ${fmt(f.befolkning)} × ${f.andelAnslutna} % = <b>${fmt(anslutna())} personer</b>. Personer utan vatten i ett scenario = anslutna × scenarioandel vid vald allvarlighetsgrad.</p>
+    <button class="primary no-print" onclick="sparaFakta()">Spara grundvärden</button>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Vattenverk (8 st – alla försörjs med grundvatten i jord/berg)</h3>
+    <table><tr><th>Vattenverk</th><th>Ort</th><th>Anmärkning</th><th>Råvatten</th></tr>
+    ${VERK.map(v=>`<tr><td>${esc(v[0])}</td><td>${esc(v[1])}</td><td>${esc(v[2])}</td><td>${esc(v[3])}</td></tr>`).join("")}</table>
+    <p style="font-size:.88em;color:var(--muted)">Kontroll: ca 150 prover/år på utgående vatten från verken och ledningsnätet, ca 120 parametrar per prov. PFAS: Åseda 6,3 ng/L och Lenhovda 8,8 ng/L – nytt gränsvärde 4 ng/L från 2026, reningsanläggning planeras.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Avlopp</h3>
+    <table><tr><th>Anläggning</th><th>Typ</th></tr>
+    ${ARV.map(v=>`<tr><td>${esc(v[0])}</td><td>${esc(v[1])}</td></tr>`).join("")}</table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Tätorter och försörjning</h3>
+    <table><tr><th>Ort</th><th>Invånare (ca, SCB 2020)</th></tr>
+    ${ORTER_TAB.map(o=>`<tr><td>${esc(o[0])}</td><td>${esc(o[1])}</td></tr>`).join("")}</table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Källor</h3>
+    <ul class="tight">
+      <li><a href="https://www.uppvidinge.se/bo-bygga-och-miljo/vatten-och-avlopp/dricksvatten.html" target="_blank" rel="noopener">Uppvidinge kommun – Dricksvatten (8 vattenverk, Älghult/Alsterfors/Klavreström)</a></li>
+      <li><a href="https://www.uppvidinge.se/391.html" target="_blank" rel="noopener">Uppvidinge kommun – Kommunalt avlopp (4 reningsverk, 5 dammar, 6 000 m³/dygn, 2 800 abonnenter)</a></li>
+      <li><a href="https://www.uppvidinge.se/kommun-och-politik/kommunens-organisation/kommunens-krisorganisation/krisberedskap/spara-vatten.html" target="_blank" rel="noopener">Uppvidinge kommun – Spara vatten / vatten i kris (tappställen via tekniska avdelningen)</a></li>
+      <li><a href="https://www.lansstyrelsen.se/kronoberg/miljo-och-vatten/atgarder-och-verksamheter-i-vatten/regional-vattenforsorjningsplan.html" target="_blank" rel="noopener">Länsstyrelsen Kronoberg – Regional vattenförsörjningsplan (Åseda vattenverk försörjer ca 2 460 pers)</a></li>
+      <li><a href="https://www.livsmedelsverket.se/globalassets/publikationsdatabas/handbocker-verktyg/guide_for_planering_av_nodvatten.pdf" target="_blank" rel="noopener">Livsmedelsverket – Guide för planering av nödvattenförsörjning</a></li>
+      <li><a href="https://rib.msb.se/filer/pdf/29212.pdf" target="_blank" rel="noopener">MSB – Handbok i kommunal krisberedskap 2: Dricksvatten</a></li>
+    </ul>
+  </div>`;
+}
+
+/* ============================ Om ============================ */
+function renderOm(){
+  el("view-om").innerHTML = `
+  <h2>Om &amp; hjälp</h2>
+  <div class="card">
+    <h3 style="margin-top:0">Så använder du simuleringen (t.ex. i en övning)</h3>
+    <ol class="tight">
+      <li>Gå till <b>Kommunfakta Uppvidinge</b> och kontrollera grundvärdena (befolkning, anslutna, vattenverk m.m.).</li>
+      <li>Välj ett scenario i <b>Simulering</b> – t.ex. ”Extremt snöfall &amp; storm” eller ”Cyberattack mot styrsystem”.</li>
+      <li>Ställ in <b>allvarlighetsgrad 1–5</b> och se direkt beräknat utfall: produktion %, personer utan vatten, liter per person och dygn, varaktighet, kostnad och påverkade orter.</li>
+      <li>Spela upp <b>tidslinjen</b> dag för dag – bra underlag för att öva beslut och kommunikation.</li>
+      <li>Gå till <b>Jämförelse</b> för att se alla tio scenarier sida vid sida.</li>
+      <li>Under <b>Samhällen</b> anger du förutsättningar per samhälle (invånare, vattenverk, reservoar/vattentorn, reservkraft + bränsletank ”el-tank”). I Simulering visas då påverkan per samhälle i kort <b>3c</b>.</li>
+      <li>Fliken <b>Övningar</b> samlar Livsmedelsverkets publicerade övningsmaterial (digital övningsbank, handbokens scenariobank, modul 7, övningskortlek m.fl.), kopplar deras scenarier till våra tio – och har en lokal övningslogg.</li>
+      <li>I <b>Rekommenderade lösningar</b> sätter du intensitet 0–3 per lösning – och kan även <b>ange egna lösningar</b>.</li>
+      <li>I kortet <b>”3b · Förväntat resultat av lösning”</b> väljer du en enskild lösning (eller hela mixen) och ser en <b>tabell med förväntat resultat per krisintensitet 1–5</b> – ”utan åtgärd → med lösning” för produktion, personer utan vatten, L/p/d, varaktighet och kostnad.</li>
+      <li>Skriv ut eller kopiera <b>övningssammanställningen</b> och koppla den till rätt händelseplan (e1–e8) i <a href="index.html">VA‑Beredskapsappen (index.html)</a>.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Tumregler (samma som i beredskapsappen)</h3>
+    <ul class="tight">
+      <li>Nödvatten, dryck och matlagning: <b>3–5 liter per person och dygn</b>.</li>
+      <li>Nödvatten vid långvarigt avbrott (hygien): ca <b>15–20 liter per person och dygn</b>.</li>
+      <li>Hushållen förväntas klara sig själva ca <b>72 timmar</b>.</li>
+      <li>Kritiska abonnenter: vård och omsorg, skolor/förskolor, livsmedelsverksamheter, djurhållning.</li>
+      <li>Kokvattenrekommendation beslutas enligt lokala rutiner med miljöförvaltningen/hälsoskydd.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Viktigt</h3>
+    <p>Detta är ett <b>övnings- och analysverktyg</b>. Alla utfallssiffror är grova uppskattningar för att öva resonemang – inte prognoser eller beslutsunderlag i en verklig kris. Verktyget ersätter inte risk- och sårbarhetsanalysen (RSA), VA‑beredskapsplanen eller händelseplanerna i <a href="index.html">index.html</a>.</p>
+    <p>Appen fungerar helt offline. All data sparas lokalt i webbläsaren (localStorage) – spara regelbundet med ”Spara som HTML‑fil” uppe till höger, eller exportera JSON.</p>
+    <p>Version: <b>${esc(APP_VERSION)}</b>. Varje ny version av filen ska ha ett unikt nummer i <code>APP_VERSION</code> – då syns det direkt i sidhuvudet, webbläsarfliken och här vilken version du har. Filen innehåller också HTTP-meta (<code>no-cache</code>, <code>no-store</code>) som ber Chrome att inte cacha när filen öppnas via en webbserver; ”Spara som HTML‑fil” ger dessutom alltid unika filnamn med datum och klockslag.</p>
+  </div>`;
+}
+
+/* ============================ Export / import / spara ============================ */
+function exportData(){
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "va-simulering-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + tidstampel() + ".json";
+  a.click();
+  setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); }catch(e){} }, 1000);
+}
+function importData(ev){
+  const f = ev.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      db = migrate(d); save(); show(nu);
+    }catch(err){ alert("Kunde inte läsa filen: " + err.message); }
+  };
+  r.readAsText(f);
+  ev.target.value = "";
+}
+function sparaApp(){
+  save();
+  const klona = document.documentElement.cloneNode(true);
+  klona.querySelectorAll("main section").forEach(s => s.innerHTML = "");
+  const seed = klona.querySelector("#app-seed");
+  seed.textContent = JSON.stringify(db).replace(/</g, "\\u003c");
+  const blob = new Blob(["<!DOCTYPE html>\n" + klona.outerHTML], {type:"text/html;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "va-simulering-" + APP_VERSION + "-" + (db.meta.kommun||"kommun").replace(/\s+/g,"_") + "-" + tidstampel() + ".html";
+  a.click();
+  setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); }catch(e){} }, 1000);
+}
+function confirmReset(){
+  if(confirm("Radera ALL data (inställningar, åtgärder)? Detta kan inte ångras.")){
+    db = blank(); save(); show(nu);
+  }
+}
+
+el("ver").textContent = APP_VERSION;
+document.title = document.title + " · " + APP_VERSION;
+show("simulera");
+</script>
+</body>
+</html>

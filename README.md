@@ -23,6 +23,20 @@ Underlaget bygger på dokumentet *Mall och checklista – VA‑beredskapsplan f�
 - **Spara som HTML‑fil** – laddar ner appen med all data inbakad i en enda fil; öppnas var som helst, helt offline. Bästa sättet att spara och bevara sitt arbete.
 - **Export/import (JSON)** – extra säkerhetskopior och delning.
 
+## VA‑simulering (`va-simulering.html`)
+
+Kompletterande offline‑app i en enda HTML‑fil: **scenariosimulering för VA i Uppvidinge kommun**. Öppna `va-simulering.html` i valfri webbläsare – samma arbetssätt som `index.html` (localStorage, "Spara som HTML‑fil", JSON‑export/import).
+
+- **Tio scenarier** som kan drabba VA: extremt snöfall & storm (samhällen utan vatten), cyberattack mot styrsystem (produktion ner till 50 %), förorening av vattentäkt / PFAS över gränsvärde (Åseda 6,3 ng/L, Lenhovda 8,8 ng/L mot 4 ng/L från 2026), torka & lågt grundvatten, stort regionalt elavbrott, skyfall & översvämning (bräddning), stort ledningsbrott, haveri på reningsverk/pumpstation, kemikaliebrist och personalbortfall.
+- **Simulering** – välj scenario och allvarlighetsgrad 1–5; appen beräknar direkt utfall: produktion %, personer utan kommunalt vatten, liter per person och dygn (mot krisminimum 3–5 L), varaktighet, kostnad och påverkade orter (Åseda, Lenhovda, Norrhult‑Klavreström, Alstermo, Älghult m.fl.). Varje scenario kopplas till rätt händelseplan (e1–e8) i `index.html`.
+- **Tidslinje** – händelseförlopp dag för dag, kan spelas upp stegvis (bra i övningar).
+- **Jämförelse** – alla scenarier sida vid sida med staplar.
+- **Rekommenderade lösningar** – per scenario: förebyggande, akut och återställning, med kryssrutor som sparas lokalt (åtgärdslista med progress).
+- **Kommunfakta Uppvidinge** – redigerbara grundvärden (9 061 invånare, 75 % i tätorter, 8 vattenverk – alla grundvatten, 4 reningsverk + 5 biologiska dammar, >6 000 m³ avlopp/dygn) samt anläggningsregister och källor.
+- **Övningssammanställning** – skriv ut eller kopiera sammanställning av valt scenario + kryssade åtgärder.
+
+Siffrorna är uppskattningar för övning – inte prognoser; verktyget ersätter inte RSA eller händelseplanerna.
+
 ## Viktigt om data
 
 - All data lagras automatiskt lokalt i webbläsaren – men rensar du webbläsardata försvinner arbetet.
